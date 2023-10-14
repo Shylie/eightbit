@@ -1,30 +1,34 @@
-typedef enum logic [1:0] {
-	MEMALU_OP_ADD    = 2'h0,
-	MEMALU_OP_INCR   = 2'h1,
-	MEMALU_OP_OFFSET = 2'h2
-} memalu_op_t;
-
 module MEMALU #(
-	parameter WIDTH = 16
+	parameter HALF_WIDTH = 8
 )(
-	input  logic       [WIDTH-1:0] a,
-	input  logic       [WIDTH-1:0] b,
-	input  memalu_op_t             mode,
-	input  logic                   control,
-	output logic       [WIDTH-1:0] out
+	input  logic                          clk,
+	input  logic       [2*HALF_WIDTH-1:0] a,
+	input  logic       [HALF_WIDTH-1:0]   b,
+	input  memalu_op_t                    mode,
+	input  reg_op_t                       control,
+	output logic       [2*HALF_WIDTH-1:0] out
 );
 
-logic [WIDTH-1:0] result;
+logic [2*HALF_WIDTH-1:0] a_reg;
+logic [HALF_WIDTH-1:0] b_reg;
+logic [2*HALF_WIDTH-1:0] result;
+
+always_ff @ (negedge clk) begin
+	if (control == REG_OP_READ) begin
+		a_reg <= a;
+		b_reg <= b;
+	end
+end
 
 always_comb begin
 	case (mode)
-		MEMALU_OP_ADD:    result = a + b;
-		MEMALU_OP_INCR:   result = a + 1;
-		MEMALU_OP_OFFSET: result = a + b - 'h7F;
+		MEMALU_OP_ADD:    result = a_reg + 16'(b_reg);
+		MEMALU_OP_INCR:   result = a_reg + 16'h0001;
+		MEMALU_OP_OFFSET: result = a_reg + 16'(b_reg) - 'h7F;
 		default: result = 'x;
 	endcase
 end
 
-assign out = control ? result : 'z;
+assign out = (control == REG_OP_WRITE) ? result : 'z;
 
 endmodule

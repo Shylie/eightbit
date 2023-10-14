@@ -34,9 +34,9 @@ waveforms/$(MODULE)_waveform.vcd: ./obj_dir/V$(MODULE)
 ./obj_dir/V$(MODULE): ./obj_dir/$(MODULE).stamp.verilate
 	@echo
 	@echo "### BUILDING SIM ###"
-	make -C obj_dir -f V$(MODULE).mk V$(MODULE)
+	make -C obj_dir -f V$(MODULE).mk V$(MODULE) CPPFLAGS="-I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -I."
 
-./obj_dir/$(MODULE).stamp.verilate: $(MODULE).sv tb_$(MODULE).cpp
+./obj_dir/$(MODULE).stamp.verilate: *.sv tb_$(MODULE).cpp
 	@echo
 	@echo "### VERILATING ###"
 	verilator -Wall --trace --cc $(MODULE).sv --exe tb_$(MODULE).cpp
