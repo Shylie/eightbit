@@ -24,7 +24,7 @@ always_comb begin
 	case (mode)
 		MEMALU_OP_ADD:    result = a_reg + 16'(b_reg);
 		MEMALU_OP_INCR:   result = a_reg + 16'h0001;
-		MEMALU_OP_OFFSET: result = a_reg + 16'(b_reg) - 'h7F;
+		MEMALU_OP_OFFSET: result = a_reg + 16'(b_reg) - 'h80;
 		default: result = 'x;
 	endcase
 end

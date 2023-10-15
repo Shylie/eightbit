@@ -257,6 +257,7 @@ always_comb begin
 		// JMPB
 		5'h1D: begin
 			alu_mem = REG_OP_WRITE;
+			alu_mem_mode = MEMALU_OP_OFFSET;
 			pc = REG_OP_READ;
 		end
 		

@@ -4,7 +4,7 @@
 #include <verilated_vcd_c.h>
 #include "VEIGHTBIT.h"
 
-#define MAX_SIM_TIME 100
+#define MAX_SIM_TIME 1000
 vluint64_t sim_time = 0;
 
 int main(int argc, char** argv)
