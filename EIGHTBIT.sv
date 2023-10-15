@@ -4,6 +4,18 @@ typedef enum logic [1:0] {
 	MEMALU_OP_OFFSET = 2'h2
 } memalu_op_t;
 
+typedef enum logic [3:0] {
+	ALU_OP_NOT  = 4'h0,
+	ALU_OP_OR   = 4'h1,
+	ALU_OP_AND  = 4'h2,
+	ALU_OP_XOR  = 4'h3,
+	ALU_OP_ADD  = 4'h4,
+	ALU_OP_SUB  = 4'h5,
+	ALU_OP_SHL  = 4'h6,
+	ALU_OP_LSHR = 4'h7,
+	ALU_OP_ASHR = 4'h8
+} alu_op_t;
+
 typedef enum logic [1:0] {
 	REG_OP_NONE = 2'b00,
 	REG_OP_READ = 2'b01,
