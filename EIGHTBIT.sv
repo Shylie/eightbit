@@ -19,9 +19,9 @@ typedef enum logic [3:0] {
 typedef enum logic [1:0] {
 	REG_OP_NONE = 2'b00,
 	REG_OP_READ = 2'b01,
-	REG_OP_WRITE = 2'b10
+	REG_OP_WRITE = 2'b10,
+	REG_OP_SWRITENC = 2'b11 // split register no copy
 } reg_op_t;
-
 
 module EIGHTBIT(
 	input  logic clk,
@@ -32,12 +32,16 @@ module EIGHTBIT(
 	output logic [9:0] LED
 );
 
+localparam DEVICE_SELECT_WIDTH = 3;
+localparam DEVICE_SELECT_WIDTH_OUT = 1 << DEVICE_SELECT_WIDTH;
+
 /* verilator lint_off UNUSED */
 logic [3:0] inverse_buttons;
 /* verilator lint_on UNUSED */
 
 wire [7:0]  data_bus;
 wire [15:0] address_bus;
+wire [15:0] register_address_bus;
 wire [7:0]  temp_always_bus_out;
 wire [7:0]  ir_always_bus_out;
 wire        overflow_flag;
@@ -60,9 +64,6 @@ reg_op_t    mp16_op;
 reg_op_t    swap_register_op;
 wire        address_read_enable;
 wire        data_in;
-/* verilator lint_off UNUSED */
-wire        data_out;
-/* verilator lint_on UNUSED */
 wire        mem_enable;
 reg_op_t    alu_data;
 reg_op_t    alu_mem;
@@ -70,10 +71,14 @@ memalu_op_t alu_mem_mode;
 
 reg_op_t    sr_op;
 
+wire                               mem_mem_enable;
+/* verilator lint_off UNUSED */
+wire [DEVICE_SELECT_WIDTH_OUT-1:0] mem_dev_enable;
+/* verilator lint_on UNUSED */
+
 /* verilator lint_off PINMISSING */
 FSM fsm(
 	.clk(clk),
-	//.instruction(switches[7:4]),
 	.instruction(ir_always_bus_out[7:4]),
 	.overflow(overflow_flag),
 	.zero(zero_flag),
@@ -91,7 +96,6 @@ FSM fsm(
 	.swap_register(swap_register_op),
 	.address_read(address_read_enable),
 	.data_in(data_in),
-	.data_out(data_out),
 	.mem_enable(mem_enable),
 	.alu_data(alu_data),
 	.alu_mem(alu_mem),
@@ -157,9 +161,8 @@ REGISTER #(.WIDTH(2)) sr(
 
 MEM #(.DATA_WIDTH(8), .ADDR_WIDTH(16)) mem(
 	.clk(clk),
-	.address(address_bus),
-	.address_read_enable(address_read_enable),
-	.enable(mem_enable),
+	.address(register_address_bus),
+	.enable(mem_mem_enable),
 	.mode(data_in),
 	.data_in(data_bus),
 	.data_out(data_bus)
@@ -170,7 +173,6 @@ ALU #(.WIDTH(8)) alu(
 	.a(data_bus),
 	.b(temp_always_bus_out),
 	.mode(alu_op_t'(ir_always_bus_out[3:0])),
-	//.mode(alu_op_t'(switches[3:0])),
 	.control(alu_data),
 	.out(data_bus),
 	.overflow(overflow_flag_out),
@@ -185,11 +187,30 @@ MEMALU #(.HALF_WIDTH(8)) memalu(
 	.control(alu_mem),
 	.out(address_bus)
 );
+
+DEVICE_MAP #(.DATA_WIDTH(8), .ADDRESS_WIDTH(16), .DEVICE_SELECT_WIDTH(DEVICE_SELECT_WIDTH)) devmap(
+	.clk(clk),
+	.address_in(address_bus),
+	.address_read_enable(address_read_enable),
+	.enable(mem_enable),
+	.address_out(register_address_bus),
+	.mem_enable(mem_mem_enable),
+	.dev_enable(mem_dev_enable)
+);
+
+LED_DEVICE led_device(
+	.clk(clk),
+	.address(register_address_bus[3:0]),
+	.enable(mem_dev_enable[0]),
+	.mode(data_in),
+	.data_in(data_bus),
+	.data_out(data_bus),
+	.LED(LED)
+);
 /* verilator lint_on PINMISSING */
 
 assign sr_op = (overflow_read && zero_read) ? REG_OP_READ : REG_OP_NONE;
 
 assign inverse_buttons = ~buttons;
-assign LED = {2'b00, temp_always_bus_out};
 
 endmodule

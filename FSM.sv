@@ -167,48 +167,46 @@ always_comb begin
 		
 		// LODA
 		5'h11: begin
-			ir_low = REG_OP_WRITE;
+			ir_low = REG_OP_SWRITENC;
 			mp16 = REG_OP_WRITE;
 			alu_mem = REG_OP_READ;
+			alu_mem_mode = MEMALU_OP_OFFSET;
 		end
 		
 		// LODB
 		5'h12: begin
-			ir_low = REG_OP_WRITE;
 			alu_mem = REG_OP_WRITE;
+			address_read = 1'b1;
 		end
 		
 		// LODC
 		5'h13: begin
-			acc_low = REG_OP_WRITE;
-			acc_high = REG_OP_WRITE;
-			alu_mem = REG_OP_WRITE;
-			address_read = 1'b1;
 			data_in = 1'b1;
 			mem_enable = 1'b1;
+			acc_low = REG_OP_READ;
+			acc_high = REG_OP_READ;
 		end
 		
 		// STOA
 		5'h14: begin
-			ir_low = REG_OP_WRITE;
+			ir_low = REG_OP_SWRITENC;
 			mp16 = REG_OP_WRITE;
 			alu_mem = REG_OP_READ;
+			alu_mem_mode = MEMALU_OP_OFFSET;
 		end
 		
 		// STOB
 		5'h15: begin
-			ir_low = REG_OP_WRITE;
 			alu_mem = REG_OP_WRITE;
+			address_read = 1'b1;
 		end
 		
 		// STOC
 		5'h16: begin
-			alu_mem = REG_OP_WRITE;
-			address_read = 1'b1;
 			data_out = 1'b1;
 			mem_enable = 1'b1;
-			acc_low = REG_OP_READ;
-			acc_high = REG_OP_READ;
+			acc_low = REG_OP_WRITE;
+			acc_high = REG_OP_WRITE;
 		end
 		
 		// SWPA

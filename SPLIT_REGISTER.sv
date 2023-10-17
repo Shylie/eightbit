@@ -38,8 +38,8 @@ always_ff @ (negedge clk) begin
 	end
 end
 
-assign bus_out[HALF_WIDTH-1:0] = (op_low == REG_OP_WRITE) ? state[HALF_WIDTH-1:0] : ((op_low == REG_OP_NONE && op_high == REG_OP_WRITE) ? state[2*HALF_WIDTH-1:HALF_WIDTH] : 'z);
-assign bus_out[2*HALF_WIDTH-1:HALF_WIDTH] = (op_high == REG_OP_WRITE) ? state[2*HALF_WIDTH-1:HALF_WIDTH] : ((op_high == REG_OP_NONE && op_low == REG_OP_WRITE) ? state[HALF_WIDTH-1:0] : 'z);
+assign bus_out[HALF_WIDTH-1:0] = (op_low == REG_OP_WRITE || op_low == REG_OP_SWRITENC) ? state[HALF_WIDTH-1:0] : ((op_low == REG_OP_NONE && op_high == REG_OP_WRITE) ? state[2*HALF_WIDTH-1:HALF_WIDTH] : 'z);
+assign bus_out[2*HALF_WIDTH-1:HALF_WIDTH] = (op_high == REG_OP_WRITE || op_high == REG_OP_SWRITENC) ? state[2*HALF_WIDTH-1:HALF_WIDTH] : ((op_high == REG_OP_NONE && op_low == REG_OP_WRITE) ? state[HALF_WIDTH-1:0] : 'z);
 assign always_bus_out = state;
 
 endmodule
