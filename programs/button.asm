@@ -1,0 +1,20 @@
+#include "defs.asm"
+
+label:
+MST 0xFF90
+LOAD 0
+SWAP
+AST 0xFF
+MUL
+SWAP
+STOR 0
+STOR 1
+STOR 2
+STOR 3
+STOR 4
+STOR 5
+STOR 6
+STOR 7
+STOR 8
+STOR 9
+JUMP label

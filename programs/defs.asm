@@ -23,28 +23,30 @@
 	SHL              => 0x46
 	SHRL             => 0x47
 	SHRA             => 0x48
-	INPUT            => 0x4F
+	MUL              => 0x49
+	DIV              => 0x4A
+	CMP              => 0x4B
 	JUMP             => 0x60
 	JMPZ             => 0x70
 	JMPO             => 0x80
 	JUMP {dest: u16} =>
 	{
 		assert(dest - $ >= -124)
-		offset = (dest - $ + 0x7C)
+		offset = (dest - $ + 0x7D)
 		assert(offset <= 0xFF)
 		asm { ASTL {offset}`4 } @ asm { ASTH ({offset} >> 4)`4 } @ 0x60
 	}
 	JMPZ {dest: u16} =>
 	{
 		assert(dest - $ >= -124)
-		offset = (dest - $ + 0x7C)
+		offset = (dest - $ + 0x7D)
 		assert(offset <= 0xFF)
 		asm { ASTL {offset}`4 } @ asm { ASTH ({offset} >> 4)`4 } @ 0x70
 	}
 	JMPO {dest: u16} =>
 	{
 		assert(dest - $ >= -124)
-		offset = (dest - $ + 0x7C)
+		offset = (dest - $ + 0x7D)
 		assert(offset <= 0xFF)
 		asm { ASTL {offset}`4 } @ asm { ASTH ({offset} >> 4)`4 } @ 0x80
 	}

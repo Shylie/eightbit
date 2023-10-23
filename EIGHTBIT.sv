@@ -13,7 +13,10 @@ typedef enum logic [3:0] {
 	ALU_OP_SUB  = 4'h5,
 	ALU_OP_SHL  = 4'h6,
 	ALU_OP_LSHR = 4'h7,
-	ALU_OP_ASHR = 4'h8
+	ALU_OP_ASHR = 4'h8,
+	ALU_OP_MUL  = 4'h9,
+	ALU_OP_DIV  = 4'hA,
+	ALU_OP_CMP  = 4'hB
 } alu_op_t;
 
 typedef enum logic [1:0] {
@@ -206,6 +209,16 @@ LED_DEVICE led_device(
 	.data_in(data_bus),
 	.data_out(data_bus),
 	.LED(LED)
+);
+
+BUTTON_DEVICE button_device(
+	.clk(clk),
+	.address(register_address_bus[3:0]),
+	.enable(mem_dev_enable[1]),
+	.mode(data_in),
+	.data_in(data_bus),
+	.data_out(data_bus),
+	.button_state(inverse_buttons)
 );
 /* verilator lint_on PINMISSING */
 

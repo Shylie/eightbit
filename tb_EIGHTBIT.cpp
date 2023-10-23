@@ -4,7 +4,7 @@
 #include <verilated_vcd_c.h>
 #include "VEIGHTBIT.h"
 
-#define MAX_SIM_TIME 1000
+#define MAX_SIM_TIME 100000
 vluint64_t sim_time = 0;
 
 int main(int argc, char** argv)
@@ -13,6 +13,8 @@ int main(int argc, char** argv)
 
 	VEIGHTBIT eb;
 	VEIGHTBIT* dut = &eb;
+
+	dut->buttons = 1;
 	
 	Verilated::traceEverOn(true);
 	VerilatedVcdC* m_trace = new VerilatedVcdC;
@@ -22,6 +24,11 @@ int main(int argc, char** argv)
 	while (sim_time < MAX_SIM_TIME)
 	{
 		dut->clk = !dut->clk;
+
+		if (sim_time % 25 == 0)
+		{
+			dut->buttons = !dut->buttons;
+		}
 
 		dut->eval();
 

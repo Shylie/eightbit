@@ -11,7 +11,7 @@ module LED_DEVICE(
 logic [7:0] pwm_data[15:0];
 logic [7:0] counter;
 
-DEVICE_INTERFACE #(.DATA_WIDTH(8), .ADDR_WIDTH(4)) device_interface(
+DEVICE_INTERFACE device_interface(
 	.clk(clk),
 	.address(address),
 	.enable(enable),
@@ -32,7 +32,7 @@ end
 generate
 	genvar i;
 	for (i = 0; i < 10; i++) begin : loop
-		assign LED[i] = (counter < 8'(16'((pwm_data[i]) ** 2) / 255));
+		assign LED[i] = (counter < 8'((16'(pwm_data[i]) ** 2) / 16'd255));
 	end
 endgenerate
 

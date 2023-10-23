@@ -1,6 +1,7 @@
 module DEVICE_INTERFACE #(
 	parameter DATA_WIDTH = 8,
-	parameter ADDR_WIDTH = 4
+	parameter ADDR_WIDTH = 4,
+	parameter WRITABLE   = 1
 )(
 	input  logic                  clk,
 	input  logic [ADDR_WIDTH-1:0] address,
@@ -24,7 +25,7 @@ always_ff @ (negedge clk) begin
 		current_value <= memory[address];
 	end
 	
-	if (enable && !mode) begin
+	if (enable && !mode && WRITABLE) begin
 		memory[address] <= data_in;
 	end
 end

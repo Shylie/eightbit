@@ -16,6 +16,7 @@ logic [WIDTH-1:0] b_reg;
 alu_op_t          mode_reg;
 logic [WIDTH-1:0] result;
 logic             overflow_r;
+logic             zero_r;
 
 always_ff @ (negedge clk) begin
 	if (control == REG_OP_READ) begin
@@ -27,22 +28,36 @@ end
 
 always_comb begin
 	overflow_r = 'x;
+	zero_r = 'x;
 	case (mode_reg)
 		ALU_OP_NOT:  result = ~a_reg;
 		ALU_OP_OR:   result = a_reg | b_reg;
 		ALU_OP_AND:  result = a_reg & b_reg;
 		ALU_OP_XOR:  result = a_reg ^ b_reg;
-		ALU_OP_ADD: {overflow_r, result} = a_reg + b_reg;
-		ALU_OP_SUB: {overflow_r, result} = a_reg - b_reg;
+		ALU_OP_ADD: begin
+			{overflow_r, result} = a_reg + b_reg;
+			 zero_r = !(|result);
+		end
+		ALU_OP_SUB: begin
+			{overflow_r, result} = a_reg - b_reg;
+			zero_r = !(|result);
+		end
 		ALU_OP_SHL:  result = a_reg << 1;
 		ALU_OP_LSHR: result = a_reg >> 1;
 		ALU_OP_ASHR: result = signed'(a_reg) >>> 1;
+		ALU_OP_MUL:  result = a_reg * b_reg;
+		ALU_OP_DIV:  result = a_reg / b_reg;
+		ALU_OP_CMP: begin
+			{overflow_r, result} = a_reg - b_reg;
+			zero_r = !(|result);
+			result = a_reg;
+		end
 		default: result = 'x;
 	endcase
 end
 
 assign out = (control == REG_OP_WRITE) ? result : 'z;
 assign overflow = (control == REG_OP_WRITE) ? overflow_r : 'z;
-assign zero = (control == REG_OP_WRITE) ? !(|result) : 'z;
+assign zero = (control == REG_OP_WRITE) ? zero_r : 'z;
 
 endmodule

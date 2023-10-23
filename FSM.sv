@@ -35,7 +35,8 @@ end
 
 always_comb begin
 	casez ({instruction, overflow, zero, current_state})
-		11'b??????00000: next_state = 5'b00010; // A -> C
+		11'b??????00000: next_state = 5'b00001; // A -> B
+		11'b??????00001: next_state = 5'b00010; // B -> C
 		11'b??????00010: next_state = 5'b00011; // C -> INCPCA
 		11'b??????00011: next_state = 5'b00100; // INCPCA -> INCPCB
 		11'b0000??00100: next_state = 5'b00101; // INCPCB -> ASTLA
@@ -46,8 +47,8 @@ always_comb begin
 		11'b0110??00100: next_state = 5'b11100; // INCPCB -> JMPA
 		11'b0111?100100: next_state = 5'b11100; // INCPCB -> JMPA (JMZ)
 		11'b10001?00100: next_state = 5'b11100; // INCPCB -> JMPA (JMO)
-		11'b1001??00100: next_state = 5'b10001; // INCPCB -> LODA
-		11'b1010??00100: next_state = 5'b10100; // INCPCB -> STOA
+		11'b1001??00100: next_state = 5'b01111; // INCPCB -> LODA
+		11'b1010??00100: next_state = 5'b10011; // INCPCB -> STOA
 		11'b1011??00100: next_state = 5'b10111; // INCPCB -> SWPA
 		11'b1100??00100: next_state = 5'b11010; // INCPCB -> MADDA
 		11'b??????00101: next_state = 5'b00000; // ASTLA -> A
@@ -56,12 +57,14 @@ always_comb begin
 		11'b??????01011: next_state = 5'b00000; // MSTHA -> A
 		11'b??????01101: next_state = 5'b01110; // OPERA -> OPERB
 		11'b??????01110: next_state = 5'b00000; // OPERB -> A
-		11'b??????10001: next_state = 5'b10010; // LODA -> LODB
-		11'b??????10010: next_state = 5'b10011; // LODB -> LODC
-		11'b??????10011: next_state = 5'b00000; // LODC -> A
-		11'b??????10100: next_state = 5'b10101; // STOA -> STOB
-		11'b??????10101: next_state = 5'b10110; // STOB -> STOC
-		11'b??????10110: next_state = 5'b00000; // STOC -> A
+		11'b??????01111: next_state = 5'b10000; // LODA -> LODB
+		11'b??????10000: next_state = 5'b10001; // LODB -> LODC
+		11'b??????10001: next_state = 5'b10010; // LODC -> LODD
+		11'b??????10010: next_state = 5'b00000; // LODD -> A
+		11'b??????10011: next_state = 5'b10100; // STOA -> STOB
+		11'b??????10100: next_state = 5'b10101; // STOB -> STOC
+		11'b??????10101: next_state = 5'b10110; // STOC -> STOD
+		11'b??????10110: next_state = 5'b00000; // STOD -> A
 		11'b??????10111: next_state = 5'b11000; // SWPA -> SWPB
 		11'b??????11000: next_state = 5'b11001; // SWPB -> SWPC
 		11'b??????11001: next_state = 5'b00000; // SWPC -> A
@@ -99,6 +102,12 @@ always_comb begin
 		5'h0: begin
 			pc = REG_OP_WRITE;
 			address_read = 1'b1;
+		end
+		
+		// B
+		5'h1: begin
+			data_in = 1'b1;
+			mem_enable = 1'b1;
 		end
 		
 		// C
@@ -166,7 +175,7 @@ always_comb begin
 		end
 		
 		// LODA
-		5'h11: begin
+		5'hF: begin
 			ir_low = REG_OP_SWRITENC;
 			mp16 = REG_OP_WRITE;
 			alu_mem = REG_OP_READ;
@@ -174,13 +183,19 @@ always_comb begin
 		end
 		
 		// LODB
-		5'h12: begin
+		5'h10: begin
 			alu_mem = REG_OP_WRITE;
 			address_read = 1'b1;
 		end
 		
 		// LODC
-		5'h13: begin
+		5'h11: begin
+			data_in = 1'b1;
+			mem_enable = 1'b1;
+		end
+		
+		// LODD
+		5'h12: begin
 			data_in = 1'b1;
 			mem_enable = 1'b1;
 			acc_low = REG_OP_READ;
@@ -188,7 +203,7 @@ always_comb begin
 		end
 		
 		// STOA
-		5'h14: begin
+		5'h13: begin
 			ir_low = REG_OP_SWRITENC;
 			mp16 = REG_OP_WRITE;
 			alu_mem = REG_OP_READ;
@@ -196,12 +211,18 @@ always_comb begin
 		end
 		
 		// STOB
-		5'h15: begin
+		5'h14: begin
 			alu_mem = REG_OP_WRITE;
 			address_read = 1'b1;
 		end
 		
 		// STOC
+		5'h15: begin
+			acc_low = REG_OP_WRITE;
+			acc_high = REG_OP_WRITE;
+		end
+		
+		// STOD
 		5'h16: begin
 			data_out = 1'b1;
 			mem_enable = 1'b1;
