@@ -32,7 +32,9 @@ module EIGHTBIT(
 	/* verilator lint_off UNUSED */
 	input  logic [9:0] switches,
 	/* verilator lint_on UNUSED */
-	output logic [9:0] LED
+	output logic [9:0] LED,
+	inout  tri         PS2_CLK,
+	inout  tri         PS2_DAT
 );
 
 localparam DEVICE_SELECT_WIDTH = 3;
@@ -216,9 +218,19 @@ BUTTON_DEVICE button_device(
 	.address(register_address_bus[3:0]),
 	.enable(mem_dev_enable[1]),
 	.mode(data_in),
-	.data_in(data_bus),
 	.data_out(data_bus),
 	.button_state(inverse_buttons)
+);
+
+MOUSE_DEVICE mouse_device(
+	.clk(clk),
+	.address(register_address_bus[3:0]),
+	.enable(mem_dev_enable[2]),
+	.mode(data_in),
+	.data_in(data_bus),
+	.data_out(data_bus),
+	.PS2_CLK(PS2_CLK),
+	.PS2_DAT(PS2_DAT)
 );
 /* verilator lint_on PINMISSING */
 

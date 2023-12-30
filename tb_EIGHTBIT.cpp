@@ -15,6 +15,7 @@ int main(int argc, char** argv)
 	VEIGHTBIT* dut = &eb;
 
 	dut->buttons = 1;
+	dut->PS2_DAT = 1;
 	
 	Verilated::traceEverOn(true);
 	VerilatedVcdC* m_trace = new VerilatedVcdC;

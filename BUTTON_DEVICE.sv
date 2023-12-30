@@ -3,9 +3,6 @@ module BUTTON_DEVICE(
 	input  logic [3:0] address,
 	input  logic       enable,
 	input  logic       mode,
-	/* verilator lint_off UNUSED */
-	input  logic [7:0] data_in,
-	/* verilator lint_on UNUSED */
 	output logic [7:0] data_out,
 	input  logic [3:0] button_state
 );
