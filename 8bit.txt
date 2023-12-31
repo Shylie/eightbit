@@ -1,0 +1,69 @@
+0000 ASTL - Set accumulator low to constant
+0001 ASTH - Set accumulator high to constant
+0010 MSTL - Set memory pointer low to accumulator
+0011 MSTH - Set memory pointer high to accumulator
+0100 OPER - Perform ALU operation given by the constant with accumulator as input A and temp register as input B, output to accumulator (LT = overflow; EQ = 0)
+0101 RESERVED
+0110 JUMP - Offset program counter to the contents of the accumulator - 0x7F
+0111 JMPZ - Offset program counter by accumulator - 0x7F if status register signals 0
+1000 JMPO - Offset program counter by accumulator - 0x7F if status register signals overflow
+1001 LOAD - Load the contents of memory location X into the accumulator, where X is the contents of the memory pointer + constant
+1010 STOR - Store the contents of the accumulator into memory location X, where X is the contents of the memory pointer + constant
+1011 SWAP - Swap the contents of the accumulator and temp register
+1100 MADD - Add the accumulator to the memory pointer
+1101 RESERVED
+1110 RESERVED
+1111 RESERVED
+
+---
+
+ALU opcodes
+
+0000 - NOT
+0001 - OR
+0010 - AND
+0011 - XOR
+0100 - ADD
+0101 - SUB
+0110 - LSHIFT
+0111 - LOGICAL RSHIFT
+1000 - ARITHMETIC RSHIFT
+1001 - MULTIPLY
+1010 - DIVIDE
+1011 - COMPARE
+
+---
+
+Registers
+
+- Instruction Register - 8    //
+- Program Counter      - 16   // These three should be self-explanatory
+- Accumulator          - 8    //
+- Temp Register        - 8    // IO for LOD/STO instructions; Input B for OPER instructions
+- Status Register      - 2    // ZERO and OVERFLOW bits
+- Memory Pointer       - 16   // 16-bit indirect memory access register
+- Swap register        - 8    // register to facilitate SWP instruction
+- Address register     - 16   // register for external address bus
+
+---
+
+Control signals
+
+ACC_LOW      - IN/OUT/OFF      - 0:1   // Lower nibble of accumulator <-> data bus
+ACC_HIGH     - IN/OUT/OFF      - 2:3   // Upper nibble of accumulator <-> data bus
+IR_LOW       - IN/OUT/OFF      - 4:5   // Lower nibble of instruction register <-> data bus
+IR_HIGH      - IN/OUT/OFF      - 6:7   // Upper nibble of instruction register <-> data bus
+TEMP         - IN/OUT/OFF      - 8:9   // Entire temp register <-> data bus
+PC           - IN/OUT/OFF      - 10:11 // Entire program counter <-> internal address bus
+STATUS_O     - IN/OFF          - 12    // Write flag for overflow bit of status register (reads from ALU)
+STATUS_Z     - IN/OFF          - 13    // Write flag for zero bit of status register (reads from ALU)
+MP8_L        - IN/OFF          - 14    // Data bus -> Lower byte of memory pointer
+MP8_H        - IN/OFF          - 15    // Data bus -> Upper byte of memory pointer
+MP16         - IN/OUT/OFF      - 16:17 // Memory pointer <-> internal address bus
+SWAP         - IN/OUT/OFF      - 18:19 // Swap register <-> data bus
+ADDR         - IN/OFF          - 20    // Write flag for address register (reads from internal address bus)
+DATA_IN      - ON/OFF          - 21    // When ON, data can flow from external data bus -> internal data bus
+MEM          - ON/OFF          - 22    // When ON, memory outputs to external data bus
+ALU_DATA     - IN/OUT/OFF      - 23:24 // Input for ALU data source A
+ALU_MEM      - IN/OUT/OFF      - 25:26 // When IN, internal address bus -> input A of MEMALU, internal data bus -> input B of MEMALU, When OUT, ALU16 output -> internal address bus
+ALU_MEM_MODE - ADD/INCR/OFFSET - 27:28 // Sets MEMALU mode. ADD is A+B, INCR is A + 1, OFFSET is A+B-0x80
