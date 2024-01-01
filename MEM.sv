@@ -10,13 +10,12 @@ module MEM #(
 	output logic [DATA_WIDTH-1:0] data_out
 );
 
-logic [DATA_WIDTH-1:0] memory[(1 << ADDR_WIDTH) - 1:0];
+(* ram_init_file = "prog.mif" *) logic [DATA_WIDTH-1:0] memory[(1 << ADDR_WIDTH) - 1:0];
 
 logic [DATA_WIDTH-1:0] current_value;
 
 initial begin
 	current_value = '0;
-	$readmemh("prog.mem", memory);
 end
 
 always_ff @ (negedge clk) begin
