@@ -27,7 +27,7 @@ STOR 0
 
 ; update LEDs
 MST 0xFFA0
-LOAD 5
+LOAD 6
 SWAP
 AST 16
 MUL
