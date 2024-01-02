@@ -152,6 +152,15 @@ set_global_assignment -name USE_SIGNALTAP_FILE stp.stp
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_location_assignment PIN_AD7 -to PS2_CLK
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to PS2_CLK
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to PS2_DAT
+set_location_assignment PIN_AE7 -to PS2_DAT
+set_instance_assignment -name SLEW_RATE 1 -to PS2_DAT
+set_instance_assignment -name SLEW_RATE 1 -to PS2_CLK
+set_instance_assignment -name CURRENT_STRENGTH_NEW 16MA -to PS2_CLK
+set_instance_assignment -name CURRENT_STRENGTH_NEW 16MA -to PS2_DAT
+set_global_assignment -name SYSTEMVERILOG_FILE DEVICE_INTERFACE.sv
 set_global_assignment -name VERILOG_FILE PS2_Controller.v
 set_global_assignment -name VERILOG_FILE Altera_UP_PS2_Data_In.v
 set_global_assignment -name VERILOG_FILE Altera_UP_PS2_Command_Out.v
@@ -165,18 +174,9 @@ set_global_assignment -name SYSTEMVERILOG_FILE FSM.sv
 set_global_assignment -name SYSTEMVERILOG_FILE SPLIT_REGISTER.sv
 set_global_assignment -name SIGNALTAP_FILE stp.stp
 set_global_assignment -name SYSTEMVERILOG_FILE DEVICE_MAP.sv
-set_global_assignment -name SYSTEMVERILOG_FILE DEVICE_INTERFACE.sv
 set_global_assignment -name SYSTEMVERILOG_FILE LED_DEVICE.sv
 set_global_assignment -name SYSTEMVERILOG_FILE BUTTON_DEVICE.sv
 set_global_assignment -name SYSTEMVERILOG_FILE MOUSE_DEVICE.sv
-set_location_assignment PIN_AD7 -to PS2_CLK
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to PS2_CLK
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to PS2_DAT
-set_location_assignment PIN_AE7 -to PS2_DAT
-set_instance_assignment -name SLEW_RATE 1 -to PS2_DAT
-set_instance_assignment -name SLEW_RATE 1 -to PS2_CLK
-set_instance_assignment -name CURRENT_STRENGTH_NEW 16MA -to PS2_CLK
-set_instance_assignment -name CURRENT_STRENGTH_NEW 16MA -to PS2_DAT
 set_global_assignment -name MIF_FILE prog.mif
 set_global_assignment -name SLD_FILE db/stp_auto_stripped.stp
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

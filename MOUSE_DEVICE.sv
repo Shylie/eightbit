@@ -9,10 +9,16 @@ module MOUSE_DEVICE(
 	inout  tri         PS2_DAT
 );
 
+// mouse_data[0] - data reporting size in range [0, 4]
+// mouse_data[1] - command to send
+// mouse_data[2] - command send enable
+// mouse_data[3] - command response
+// mouse_data[4] - last data report id
+// rest of data  - data reporting sequence
 logic [7:0] mouse_data[15:0];
 logic [7:0] current_value;
 
-logic [1:0] counter;
+logic [3:0] counter;
 
 logic [7:0] cmd;
 logic       send_cmd;
@@ -38,11 +44,11 @@ initial begin
 end
 
 always_ff @ (negedge clk) begin
-	if (mouse_data[7] > 0) begin
+	if (mouse_data[2] > 0) begin
 		send_cmd <= 1;
-		cmd <= mouse_data[6];
-		mouse_data[7] <= 0;
-		counter <= 2'b11;
+		cmd <= mouse_data[1];
+		mouse_data[2] <= 0;
+		counter <= 4'hF;
 	end
 	
 	if (enable && mode) begin
@@ -53,36 +59,21 @@ always_ff @ (negedge clk) begin
 		mouse_data[address] <= data_in;
 	end
 	
-	
 	if (cmd_was_sent > 0 || communication_timed_out > 0) begin
 		send_cmd <= 0;
 	end
 
 	if (data_recv_en) begin
-	
-		case (counter)
-			2'b00: begin
-				mouse_data[0] <= data_recv;
-				counter <= 2'b01;
-			end
+		if (counter < 3'(mouse_data[0])) begin
+			mouse_data[counter + 5] <= data_recv;
 			
-			2'b01: begin
-				mouse_data[1] <= data_recv;
-				counter <= 2'b10;
-			end
-			
-			2'b10: begin
-				mouse_data[2] <= data_recv;
-				counter <= 2'b00;
-				
-				mouse_data[5] <= mouse_data[5] + 1;
-			end
-			
-			2'b11: begin
-				mouse_data[4] <= data_recv;
-				counter <= 2'b00;
-			end
-		endcase
+			counter <= counter + 1;
+		end
+		
+		if (counter + 1 >= 3'(mouse_data[0])) begin
+			counter <= 0;
+			mouse_data[4] <= mouse_data[4] + 1;
+		end
 	end
 end
 

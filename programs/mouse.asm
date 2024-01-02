@@ -1,16 +1,20 @@
 #include "defs.asm"
 
-; enable data reporting
 MST 0xFFA0
+; set data reporting size
+AST 3
+STOR 0
+; enable data reporting
 AST 0xF4
-STOR 6
+STOR 1
+; send command
 AST 1
-STOR 7
+STOR 2
 
 ; check if new data has been reported
 loop:
 MST 0xFFA0
-LOAD 5
+LOAD 4
 SWAP
 MST last_recv_id
 LOAD 0
@@ -23,7 +27,7 @@ STOR 0
 
 ; update LEDs
 MST 0xFFA0
-LOAD 1
+LOAD 5
 SWAP
 AST 16
 MUL
