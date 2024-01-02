@@ -1,3 +1,5 @@
+Instruction Set
+
 0000 ASTL - Set accumulator low to constant
 0001 ASTH - Set accumulator high to constant
 0010 MSTL - Set memory pointer low to accumulator
@@ -17,7 +19,38 @@
 
 ---
 
-ALU opcodes
+Memory-mapped IO Devices
+
+LEDs - FF80-FF8F
+
+Controls the 10 on-board LEDs with brightness values 00-FF in addresses FF80-FF8A.
+Memory addresses FF8B-FF8F are unused by the device.
+
+
+Buttons - FF90-FF9F
+
+Memory addresses FF90-FF93 are either 0 (button not pressed) or 1 (button pressed).
+Memory addresses FF94-FF9F are unused by the device.
+
+
+Mouse - FFA0-FFAF
+
+Memory address FFA0 is the mouse data reporting size.
+Memory address FFA1 is the command to send.
+Memory address FFA2 is the command send enable.
+Memory address FFA3 is the mouse command response.
+Memory address FFA4 is the last auto-reported data ID.
+Memory addresses FFA5-FFAF is used to store the auto-reported data and other longer responses from commands.
+
+When auto-reporting is enabled, the bytes will be stored contiguously in memory starting at FFA5
+After 'mouse data reporting size' bytes are written, the device will reset back to FFA5 and overwrite the previous data.
+
+See the following website for more details:
+http://www-ug.eecg.utoronto.ca/desl/nios_devices_SoC/datasheets/PS2%20Mouse%20Protocol.htm
+
+---
+
+ALU Opcodes
 
 0000 - NOT
 0001 - OR
@@ -47,7 +80,7 @@ Registers
 
 ---
 
-Control signals
+Control Signals
 
 ACC_LOW      - IN/OUT/OFF      - 0:1   // Lower nibble of accumulator <-> data bus
 ACC_HIGH     - IN/OUT/OFF      - 2:3   // Upper nibble of accumulator <-> data bus
