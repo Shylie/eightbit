@@ -8,7 +8,7 @@ module LED_DEVICE(
 	output logic [9:0] LED
 );
 
-logic [7:0] pwm_data[15:0];
+wire logic [7:0] pwm_data[15:0];
 logic [7:0] counter;
 
 DEVICE_INTERFACE device_interface(

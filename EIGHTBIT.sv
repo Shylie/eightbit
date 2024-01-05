@@ -33,6 +33,14 @@ module EIGHTBIT(
 	input  logic [9:0] switches,
 	/* verilator lint_on UNUSED */
 	output logic [9:0] LED,
+	output logic       VGA_CLK,
+	output logic [7:0] VGA_RED,
+	output logic [7:0] VGA_GREEN,
+	output logic [7:0] VGA_BLUE,
+	output logic       VGA_HSYNC,
+	output logic       VGA_VSYNC,
+	output logic       VGA_BLANK,
+	output logic       VGA_SYNC,
 	inout  tri         PS2_CLK,
 	inout  tri         PS2_DAT
 );
@@ -81,9 +89,22 @@ wire                               mem_mem_enable;
 wire [DEVICE_SELECT_WIDTH_OUT-1:0] mem_dev_enable;
 /* verilator lint_on UNUSED */
 
+wire clk_25_2;
+wire clk_100;
+
+PLL pll(
+	.refclk(clk),
+	.outclk_0(clk_100)
+);
+
+VGA_PLL vga_pll(
+	.refclk(clk),
+	.outclk_0(clk_25_2)
+);
+
 /* verilator lint_off PINMISSING */
 FSM fsm(
-	.clk(clk),
+	.clk(clk_100),
 	.instruction(ir_always_bus_out[7:4]),
 	.overflow(overflow_flag),
 	.zero(zero_flag),
@@ -108,7 +129,7 @@ FSM fsm(
 );
 
 SPLIT_REGISTER #(.HALF_WIDTH(4)) ir(
-	.clk(clk),
+	.clk(clk_100),
 	.op_low(ir_low),
 	.op_high(ir_high),
 	.bus_in(data_bus),
@@ -117,7 +138,7 @@ SPLIT_REGISTER #(.HALF_WIDTH(4)) ir(
 );
 
 SPLIT_REGISTER #(.HALF_WIDTH(4)) acc(
-	.clk(clk),
+	.clk(clk_100),
 	.op_low(acc_low),
 	.op_high(acc_high),
 	.bus_in(data_bus),
@@ -125,7 +146,7 @@ SPLIT_REGISTER #(.HALF_WIDTH(4)) acc(
 );
 
 REGISTER #(.WIDTH(8)) temp(
-	.clk(clk),
+	.clk(clk_100),
 	.op(temp_register_op),
 	.bus_in(data_bus),
 	.bus_out(data_bus),
@@ -133,21 +154,21 @@ REGISTER #(.WIDTH(8)) temp(
 );
 
 REGISTER #(.WIDTH(8)) swap(
-	.clk(clk),
+	.clk(clk_100),
 	.op(swap_register_op),
 	.bus_in(data_bus),
 	.bus_out(data_bus)
 );
 
 REGISTER #(.WIDTH(16)) pc(
-	.clk(clk),
+	.clk(clk_100),
 	.op(pc_op),
 	.bus_in(address_bus),
 	.bus_out(address_bus)
 );
 
 SPLIT_REGISTER #(.HALF_WIDTH(8)) mp(
-	.clk(clk),
+	.clk(clk_100),
 	.op_low(mp16_op),
 	.op_high(mp16_op),
 	.bus_b_low(mp8_low),
@@ -158,14 +179,14 @@ SPLIT_REGISTER #(.HALF_WIDTH(8)) mp(
 );
 
 REGISTER #(.WIDTH(2)) sr(
-	.clk(clk),
+	.clk(clk_100),
 	.op(sr_op),
 	.bus_in({overflow_flag_out, zero_flag_out}),
 	.always_bus_out({overflow_flag, zero_flag})
 );
 
 MEM #(.DATA_WIDTH(8), .ADDR_WIDTH(16)) mem(
-	.clk(clk),
+	.clk(clk_100),
 	.address(register_address_bus),
 	.enable(mem_mem_enable),
 	.mode(data_in),
@@ -174,7 +195,7 @@ MEM #(.DATA_WIDTH(8), .ADDR_WIDTH(16)) mem(
 );
 
 ALU #(.WIDTH(8)) alu(
-	.clk(clk),
+	.clk(clk_100),
 	.a(data_bus),
 	.b(temp_always_bus_out),
 	.mode(alu_op_t'(ir_always_bus_out[3:0])),
@@ -185,7 +206,7 @@ ALU #(.WIDTH(8)) alu(
 );
 
 MEMALU #(.HALF_WIDTH(8)) memalu(
-	.clk(clk),
+	.clk(clk_100),
 	.a(address_bus),
 	.b(data_bus),
 	.mode(alu_mem_mode),
@@ -194,7 +215,7 @@ MEMALU #(.HALF_WIDTH(8)) memalu(
 );
 
 DEVICE_MAP #(.DATA_WIDTH(8), .ADDRESS_WIDTH(16), .DEVICE_SELECT_WIDTH(DEVICE_SELECT_WIDTH)) devmap(
-	.clk(clk),
+	.clk(clk_100),
 	.address_in(address_bus),
 	.address_read_enable(address_read_enable),
 	.enable(mem_enable),
@@ -204,7 +225,7 @@ DEVICE_MAP #(.DATA_WIDTH(8), .ADDRESS_WIDTH(16), .DEVICE_SELECT_WIDTH(DEVICE_SEL
 );
 
 LED_DEVICE led_device(
-	.clk(clk),
+	.clk(clk_100),
 	.address(register_address_bus[3:0]),
 	.enable(mem_dev_enable[0]),
 	.mode(data_in),
@@ -214,7 +235,7 @@ LED_DEVICE led_device(
 );
 
 BUTTON_DEVICE button_device(
-	.clk(clk),
+	.clk(clk_100),
 	.address(register_address_bus[3:0]),
 	.enable(mem_dev_enable[1]),
 	.mode(data_in),
@@ -223,7 +244,7 @@ BUTTON_DEVICE button_device(
 );
 
 MOUSE_DEVICE mouse_device(
-	.clk(clk),
+	.clk(clk_100),
 	.address(register_address_bus[3:0]),
 	.enable(mem_dev_enable[2]),
 	.mode(data_in),
@@ -232,10 +253,30 @@ MOUSE_DEVICE mouse_device(
 	.PS2_CLK(PS2_CLK),
 	.PS2_DAT(PS2_DAT)
 );
+
+VGA_DEVICE vga_device(
+	.clk(clk_100),
+	.address(register_address_bus[3:0]),
+	.enable(mem_dev_enable[3]),
+	.mode(data_in),
+	.data_in(data_bus),
+	.data_out(data_bus),
+	.clk_pixel(clk_25_2),
+	.red(VGA_RED),
+	.green(VGA_GREEN),
+	.blue(VGA_BLUE),
+	.hsync(VGA_HSYNC),
+	.vsync(VGA_VSYNC),
+	.blank(VGA_BLANK),
+	.sync(VGA_SYNC)
+);
+	
 /* verilator lint_on PINMISSING */
 
 assign sr_op = (overflow_read && zero_read) ? REG_OP_READ : REG_OP_NONE;
 
 assign inverse_buttons = ~buttons;
+
+assign VGA_CLK = clk_25_2;
 
 endmodule
