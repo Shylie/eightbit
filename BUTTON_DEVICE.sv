@@ -1,13 +1,13 @@
 module BUTTON_DEVICE(
 	input  logic       clk,
-	input  logic [3:0] address,
+	input  logic [4:0] address,
 	input  logic       enable,
 	input  logic       mode,
 	output logic [7:0] data_out,
 	input  logic [3:0] button_state
 );
 
-logic [7:0] button_data[15:0];
+logic [7:0] button_data[31:0];
 logic [7:0] current_value;
 
 initial begin

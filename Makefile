@@ -1,17 +1,8 @@
-ifndef MODULE
-ifneq ($(MAKECMDGOALS),clean)
-$(error MODULE is not set)
-endif
-endif
-
-.PHONY: wave
-wave: waveforms/$(MODULE)_waveform.vcd
-	@echo
-	@echo "### VIEWING WAVEFORM ###"
-	gtkwave $(PWD)/waveforms/$(MODULE)_waveform.vcd &
+MODULE ?= EIGHTBIT
 
 .PHONY: sim
-sim: waveforms/$(MODULE)_waveform.vcd
+sim: build
+	./obj_dir/V$(MODULE)
 
 .PHONY: verilate
 verilate: obj_dir/$(MODULE).stamp.verilate
@@ -22,14 +13,6 @@ build: obj_dir/V$(MODULE)
 .PHONY: clean
 clean:
 	rm -rf ./obj_dir
-	rm -rf waveforms
-
-waveforms/$(MODULE)_waveform.vcd: ./obj_dir/V$(MODULE)
-	@echo
-	@echo "### SIMULATING ###"
-	@./obj_dir/V$(MODULE)
-	@mkdir -p waveforms
-	@mv waveform.vcd waveforms/$(MODULE)_waveform.vcd
 
 ./obj_dir/V$(MODULE): ./obj_dir/$(MODULE).stamp.verilate
 	@echo
@@ -39,5 +22,5 @@ waveforms/$(MODULE)_waveform.vcd: ./obj_dir/V$(MODULE)
 ./obj_dir/$(MODULE).stamp.verilate: *.sv tb_$(MODULE).cpp
 	@echo
 	@echo "### VERILATING ###"
-	verilator -Wall --trace --cc $(MODULE).sv --exe tb_$(MODULE).cpp
+	verilator -Wno-WIDTH -Wno-TIMESCALEMOD -I/mnt/c/intelFPGA/23.1std/quartus/eda/fv_lib/verilog/ --trace --cc $(MODULE).sv --exe tb_$(MODULE).cpp -CFLAGS -D_REENTRANT -LDFLAGS -lSDL2 -LDFLAGS -lSDL2main 
 	@touch obj_dir/$(MODULE).stamp.verilate
