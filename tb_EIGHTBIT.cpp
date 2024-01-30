@@ -5,7 +5,7 @@
 #include <verilated_vcd_c.h>
 #include "VEIGHTBIT.h"
 
-#define WAVE 1000000
+#define WAVE 100000000
 
 vluint64_t sim_time = 0;
 
@@ -58,6 +58,7 @@ int main(int argc, char** argv)
 #ifdef WAVE
 		m_trace->dump(sim_time++);
 #endif
+
 		dut->clk = 0;
 		dut->eval();
 #ifdef WAVE

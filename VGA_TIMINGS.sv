@@ -36,8 +36,8 @@ localparam signed VS_END   = VS_START + V_SYNC;
 localparam signed VA_START = 0;
 localparam signed VA_END   = V_RES - 1;
 
-logic signed [COORD_WIDTH-1:0] x;
-logic signed [COORD_WIDTH-1:0] y;
+logic signed [COORD_WIDTH-1:0] x = H_START;
+logic signed [COORD_WIDTH-1:0] y = V_START;
 
 always_ff @ (posedge clk_pixel) begin
 	hsync <= H_POL ? (x >= HS_START && x < HS_END) : ~(x >= HS_START && x < HS_END);

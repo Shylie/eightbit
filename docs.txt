@@ -15,7 +15,7 @@ Instruction Set
 1100 JMPA - Copy the memory pointer to the program counter
 1101 RESERVED
 1110 RESERVED
-1111 RESERVED
+1111 RTIR - Return from interrupt
 
 ---
 

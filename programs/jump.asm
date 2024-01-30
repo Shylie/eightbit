@@ -1,5 +1,10 @@
 #include "defs.asm"
 
+JMPA main
+
+#bank PROGRAM
+
+main:
 MST 0xFF80
 AST 0
 STOR 0

@@ -1,11 +1,13 @@
 #include "defs.asm"
 
-MST 0xFF80
-AST 0
-STOR 0
+JMPA loop
+JMPA new_frame
+
+#bank PROGRAM
 
 loop:
 ; load LED 0 value
+MST 0xFF80
 LOAD 0
 ; add one
 SWAP
@@ -19,6 +21,7 @@ JUMP loop
 
 next:
 ; load LED 1 value
+MST 0xFF80
 LOAD 1
 ; add one
 SWAP
@@ -31,6 +34,7 @@ JUMP loop
 
 nextnext:
 ; load LED 2 value
+MST 0xFF80
 LOAD 2
 ; add one
 SWAP
@@ -40,3 +44,12 @@ ADD
 STOR 2
 ; go back to main loop
 JUMP loop
+
+new_frame:
+MST 0xFF80
+LOAD 9
+SWAP
+AST 1
+ADD
+STOR 9
+RTIR

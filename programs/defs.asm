@@ -1,12 +1,27 @@
 #once
 
-#bankdef PROGRAM
+#const(noemit) WORD_SIZE = 8
+#const(noemit) INTERRUPT_SIZE = 7
+#const(noemit) INTERRUPT_COUNT = 16
+#const(noemit) INTERRUPT_SPACE = INTERRUPT_SIZE * (INTERRUPT_COUNT + 1)
+
+#bankdef INTERRUPT_HANDLERS
 {
-	#bits 8
+	#bits WORD_SIZE
 	#addr 0
-	#size 0xFF01
+	#size INTERRUPT_SPACE
 	#outp 0
 }
+
+#bankdef PROGRAM
+{
+	#bits WORD_SIZE
+	#addr INTERRUPT_SPACE
+	#addr_end 0xFF80
+	#outp INTERRUPT_SPACE * WORD_SIZE
+}
+
+#bank INTERRUPT_HANDLERS
 
 #ruledef
 {
@@ -64,14 +79,12 @@
 		MSTH
 	} @ 0xC0
 
-	AST {value: u8}  =>
+	RTIR             => 0xF0
+
+	AST {value: u8}  => asm
 	{
-		assert(value <= 0xFF)
-		asm
-		{
-			ASTL {value}`4
-			ASTH ({value} >> 4)`4
-		}
+		ASTL {value}`4
+		ASTH ({value} >> 4)`4
 	}
 
 	MST {value: u16} => asm
@@ -82,26 +95,5 @@
 		ASTL ({value} >> 8)`4
 		ASTH ({value} >> 12)`4
 		MSTH
-	}
-
-	MEMSWAP {offs1: u4}, {offs2: u4} => asm
-	{
-		LOAD {offs1}
-		SWAP
-		LOAD {offs2}
-		STOR {offs1}
-		SWAP
-		STOR {offs2}
-	}
-
-	MEMSWAP {addr: u16}, {offs1: u4}, {offs2: u4} => asm
-	{
-		MST {addr}
-		LOAD {offs1}
-		SWAP
-		LOAD {offs2}
-		STOR {offs1}
-		SWAP
-		STOR {offs2}
 	}
 }

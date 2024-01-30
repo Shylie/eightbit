@@ -1,17 +1,20 @@
-module VGA_DEVICE(
-	input  logic       clk,
-	input  logic [3:0] address,
-	input  logic       enable,
-	input  logic       mode,
-	input  logic [7:0] data_in,
-	output logic [7:0] data_out,
-	input  logic       clk_pixel,
-	output logic [7:0] red,
-	output logic [7:0] green,
-	output logic [7:0] blue,
-	output logic       hsync,
-	output logic       vsync,
-	output logic       data_enable
+module VGA_DEVICE #(
+	parameter INTERRUPT_WIDTH = 4
+)(
+	input  logic                       clk,
+	input  logic                 [3:0] address,
+	input  logic                       enable,
+	input  logic                       mode,
+	input  logic                 [7:0] data_in,
+	output logic                 [7:0] data_out,
+	output logic [INTERRUPT_WIDTH-1:0] interrupt,
+	input  logic                       clk_pixel,
+	output logic                 [7:0] red,
+	output logic                 [7:0] green,
+	output logic                 [7:0] blue,
+	output logic                       hsync,
+	output logic                       vsync,
+	output logic                       data_enable
 );
 
 localparam COORD_WIDTH = 16;
@@ -38,6 +41,8 @@ logic [7:0] reg_data[15:0];
 
 logic signed [COORD_WIDTH-1:0] screen_x;
 logic signed [COORD_WIDTH-1:0] screen_y;
+
+logic [INTERRUPT_WIDTH-1:0] internal_interrupt;
 
 logic frame;
 logic line;
@@ -235,6 +240,12 @@ always_ff @ (negedge clk) begin
 		reg_data[address] <= data_in;
 	end
 	
+	if (frame_sys) begin
+		internal_interrupt = 1;
+	end else begin
+		internal_interrupt = 0;
+	end
+	
 	if (reg_data[1] > 0) begin
 		reg_data[1] <= 0;
 		
@@ -247,6 +258,7 @@ always_ff @ (negedge clk) begin
 	end
 end
 
-assign data_out = (enable && mode) ? current_value : 'z;
+assign data_out  = (enable && mode) ? current_value : 'z;
+assign interrupt = (internal_interrupt > 0) ? internal_interrupt : 'z;
 
 endmodule

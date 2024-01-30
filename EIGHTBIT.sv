@@ -27,7 +27,7 @@ typedef enum logic [1:0] {
 } reg_op_t;
 
 module EIGHTBIT(
-	input  logic clk,
+	input  logic       clk,
 	input  logic [3:0] buttons,
 	input  logic [9:0] switches,
 	output logic [9:0] LED,
@@ -44,12 +44,16 @@ module EIGHTBIT(
 
 localparam DEVICE_SELECT_WIDTH = 3;
 localparam DEVICE_SELECT_WIDTH_OUT = 1 << DEVICE_SELECT_WIDTH;
+localparam INTERRUPT_WIDTH = 4;
 
 logic [3:0] inverse_buttons;
 
 wire [7:0]  data_bus;
 wire [15:0] address_bus;
 wire [15:0] register_address_bus;
+wire [15:0] pc_always_bus_out;
+wire [15:0] mp_always_bus_out;
+wire [7:0]  acc_always_bus_out;
 wire [7:0]  temp_always_bus_out;
 wire [7:0]  ir_always_bus_out;
 wire        overflow_flag;
@@ -57,6 +61,10 @@ wire        zero_flag;
 
 wire        overflow_flag_out;
 wire        zero_flag_out;
+
+wire [INTERRUPT_WIDTH-1:0] interrupt_in;
+wire [INTERRUPT_WIDTH-1:0] interrupt_out;
+wire                       processing_interrupt;
 
 reg_op_t    ir_low;
 reg_op_t    ir_high;
@@ -103,6 +111,13 @@ FSM fsm(
 	.instruction(ir_always_bus_out[7:4]),
 	.overflow(overflow_flag),
 	.zero(zero_flag),
+	.interrupt(interrupt_out),
+	.pc_in(pc_always_bus_out),
+	.mp_in(mp_always_bus_out),
+	.acc_in(acc_always_bus_out),
+	.temp_in(temp_always_bus_out),
+	.overflow_write(overflow_flag_out),
+	.zero_write(zero_flag_out),
 	.ir_low(ir_low),
 	.ir_high(ir_high),
 	.acc_low(acc_low),
@@ -120,7 +135,10 @@ FSM fsm(
 	.mem_enable(mem_enable),
 	.alu_data(alu_data),
 	.alu_mem(alu_mem),
-	.alu_mem_mode(alu_mem_mode)
+	.alu_mem_mode(alu_mem_mode),
+	.processing_interrupt(processing_interrupt),
+	.address(address_bus),
+	.data(data_bus)
 );
 
 SPLIT_REGISTER #(.HALF_WIDTH(4)) ir(
@@ -137,7 +155,8 @@ SPLIT_REGISTER #(.HALF_WIDTH(4)) acc(
 	.op_low(acc_low),
 	.op_high(acc_high),
 	.bus_in(data_bus),
-	.bus_out(data_bus)
+	.bus_out(data_bus),
+	.always_bus_out(acc_always_bus_out)
 );
 
 REGISTER #(.WIDTH(8)) temp(
@@ -159,7 +178,8 @@ REGISTER #(.WIDTH(16)) pc(
 	.clk(clk_100),
 	.op(pc_op),
 	.bus_in(address_bus),
-	.bus_out(address_bus)
+	.bus_out(address_bus),
+	.always_bus_out(pc_always_bus_out)
 );
 
 SPLIT_REGISTER #(.HALF_WIDTH(8)) mp(
@@ -170,7 +190,8 @@ SPLIT_REGISTER #(.HALF_WIDTH(8)) mp(
 	.bus_b_high(mp8_high),
 	.bus_in(address_bus),
 	.bus_b_in(data_bus),
-	.bus_out(address_bus)
+	.bus_out(address_bus),
+	.always_bus_out(mp_always_bus_out)
 );
 
 REGISTER #(.WIDTH(2)) sr(
@@ -259,6 +280,7 @@ VGA_DEVICE vga_device(
 	.mode(data_in),
 	.data_in(data_bus),
 	.data_out(data_bus),
+	.interrupt(interrupt_in),
 	.clk_pixel(clk_25_2),
 	.red(VGA_RED),
 	.green(VGA_GREEN),
@@ -266,6 +288,13 @@ VGA_DEVICE vga_device(
 	.hsync(VGA_HSYNC),
 	.vsync(VGA_VSYNC),
 	.data_enable(VGA_BLANK)
+);
+
+INTERRUPT_BUFFER #(.WIDTH(INTERRUPT_WIDTH)) interrupt_buffer(
+	.clk(clk_100),
+	.interrupt_in(interrupt_in),
+	.processing(processing_interrupt),
+	.interrupt_out(interrupt_out)
 );
 // verilator lint_on PINMISSING
 
