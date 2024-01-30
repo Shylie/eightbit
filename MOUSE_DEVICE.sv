@@ -1,6 +1,6 @@
 module MOUSE_DEVICE(
 	input  logic       clk,
-	input  logic [4:0] address,
+	input  logic [3:0] address,
 	input  logic       enable,
 	input  logic       mode,
 	input  logic [7:0] data_in,
@@ -15,7 +15,7 @@ module MOUSE_DEVICE(
 // mouse_data[3] - command response
 // mouse_data[4] - last data report id
 // rest of data  - data reporting sequence
-logic [7:0] mouse_data[31:0];
+logic [7:0] mouse_data[15:0];
 logic [7:0] current_value;
 
 logic [3:0] counter;

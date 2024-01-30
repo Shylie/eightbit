@@ -1,6 +1,6 @@
 module VGA_DEVICE(
 	input  logic       clk,
-	input  logic [4:0] address,
+	input  logic [3:0] address,
 	input  logic       enable,
 	input  logic       mode,
 	input  logic [7:0] data_in,
@@ -34,7 +34,7 @@ localparam LATENCY = 3;
 
 logic [7:0] current_value;
 
-logic [7:0] reg_data[31:0];
+logic [7:0] reg_data[15:0];
 
 logic signed [COORD_WIDTH-1:0] screen_x;
 logic signed [COORD_WIDTH-1:0] screen_y;

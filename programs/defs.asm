@@ -4,7 +4,7 @@
 {
 	#bits 8
 	#addr 0
-	#size 0x10000
+	#size 0xFF01
 	#outp 0
 }
 
@@ -53,7 +53,16 @@
 	LOAD {offs:  u4} => 0x9 @ offs
 	STOR {offs:  u4} => 0xA @ offs
 	SWAP             => 0xB0
-	MADD             => 0xC0
+	JMPA             => 0xC0
+	JMPA {dest: u16} => asm
+	{
+		ASTL {dest}`4
+		ASTH ({dest} >> 4)`4
+		MSTL
+		ASTL ({dest} >> 8)`4
+		ASTH ({dest} >> 12)`4
+		MSTH
+	} @ 0xC0
 
 	AST {value: u8}  =>
 	{

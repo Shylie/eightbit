@@ -209,7 +209,7 @@ MEMALU #(.HALF_WIDTH(8)) memalu(
 	.out(address_bus)
 );
 
-DEVICE_MAP #(.DATA_WIDTH(8), .ADDRESS_WIDTH(16), .DEVICE_SELECT_WIDTH(DEVICE_SELECT_WIDTH), .DEVICE_ADDRESS_WIDTH(5)) devmap(
+DEVICE_MAP #(.DATA_WIDTH(8), .ADDRESS_WIDTH(16), .DEVICE_SELECT_WIDTH(DEVICE_SELECT_WIDTH), .DEVICE_ADDRESS_WIDTH(4)) devmap(
 	.clk(clk_100),
 	.address_in(address_bus),
 	.address_read_enable(address_read_enable),
@@ -219,21 +219,20 @@ DEVICE_MAP #(.DATA_WIDTH(8), .ADDRESS_WIDTH(16), .DEVICE_SELECT_WIDTH(DEVICE_SEL
 	.dev_enable(mem_dev_enable)
 );
 
-`ifndef verilator
+
 LED_DEVICE led_device(
 	.clk(clk_100),
-	.address(register_address_bus[4:0]),
+	.address(register_address_bus[3:0]),
 	.enable(mem_dev_enable[0]),
 	.mode(data_in),
 	.data_in(data_bus),
 	.data_out(data_bus),
 	.LED(LED)
 );
-`endif
 
 BUTTON_DEVICE button_device(
 	.clk(clk_100),
-	.address(register_address_bus[4:0]),
+	.address(register_address_bus[3:0]),
 	.enable(mem_dev_enable[1]),
 	.mode(data_in),
 	.data_out(data_bus),
@@ -243,7 +242,7 @@ BUTTON_DEVICE button_device(
 `ifndef verilator
 MOUSE_DEVICE mouse_device(
 	.clk(clk_100),
-	.address(register_address_bus[4:0]),
+	.address(register_address_bus[3:0]),
 	.enable(mem_dev_enable[2]),
 	.mode(data_in),
 	.data_in(data_bus),
@@ -255,7 +254,7 @@ MOUSE_DEVICE mouse_device(
 
 VGA_DEVICE vga_device(
 	.clk(clk_100),
-	.address(register_address_bus[4:0]),
+	.address(register_address_bus[3:0]),
 	.enable(mem_dev_enable[3]),
 	.mode(data_in),
 	.data_in(data_bus),

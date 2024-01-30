@@ -50,7 +50,7 @@ always_comb begin
 		11'b1001??00100: next_state = 5'b01111; // INCPCB -> LODA
 		11'b1010??00100: next_state = 5'b10011; // INCPCB -> STOA
 		11'b1011??00100: next_state = 5'b10111; // INCPCB -> SWPA
-		11'b1100??00100: next_state = 5'b11010; // INCPCB -> MADDA
+		11'b1100??00100: next_state = 5'b11010; // INCPCB -> JMPAA
 		11'b??????00101: next_state = 5'b00000; // ASTLA -> A
 		11'b??????00111: next_state = 5'b00000; // ASTHA -> A
 		11'b??????01001: next_state = 5'b00000; // MSTLA -> A
@@ -68,11 +68,11 @@ always_comb begin
 		11'b??????10111: next_state = 5'b11000; // SWPA -> SWPB
 		11'b??????11000: next_state = 5'b11001; // SWPB -> SWPC
 		11'b??????11001: next_state = 5'b00000; // SWPC -> A
-		11'b??????11010: next_state = 5'b11011; // MADDA -> MADDB
-		11'b??????11011: next_state = 5'b00000; // MADDB -> A
+		11'b??????11010: next_state = 5'b11011; // JMPAA -> JMPAB
+		11'b??????11011: next_state = 5'b00000; // JMPAB -> A
 		11'b??????11100: next_state = 5'b11101; // JMPA -> JMPB
 		11'b??????11101: next_state = 5'b00000; // JMPB -> A
-		default:         next_state = 5'b00000;
+		default:         next_state = 5'b00000; // invalid state
 	endcase
 end
 
@@ -250,18 +250,15 @@ always_comb begin
 			acc_high = REG_OP_READ;
 		end
 		
-		// MADDA
+		// JMPAA
 		5'h1A: begin
-			acc_low = REG_OP_WRITE;
-			acc_high = REG_OP_WRITE;
 			mp16 = REG_OP_WRITE;
-			alu_mem = REG_OP_READ;
+			pc = REG_OP_READ;
 		end
 		
-		// MADDB
+		// JMPAB
 		5'h1B: begin
-			alu_mem = REG_OP_WRITE;
-			mp16 = REG_OP_READ;
+			// nop
 		end
 		
 		// JMPA

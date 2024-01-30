@@ -12,7 +12,7 @@ Instruction Set
 1001 LOAD - Load the contents of memory location X into the accumulator, where X is the contents of the memory pointer + constant
 1010 STOR - Store the contents of the accumulator into memory location X, where X is the contents of the memory pointer + constant
 1011 SWAP - Swap the contents of the accumulator and temp register
-1100 MADD - Add the accumulator to the memory pointer
+1100 JMPA - Copy the memory pointer to the program counter
 1101 RESERVED
 1110 RESERVED
 1111 RESERVED
@@ -21,26 +21,26 @@ Instruction Set
 
 Memory-mapped IO Devices
 
-LEDs - FF00-FF1F
+LEDs - FF80-FF8F
 
 Controls the 10 on-board LEDs with brightness values 00-FF in addresses FF80-FF89.
-Memory addresses FF0A-FF1F are unused by the device.
+Memory addresses FF8A-FF8F are unused by the device.
 
 
-Buttons - FF20-FF4F
+Buttons - FF90-FF9F
 
-Memory addresses FF20-FF23 are either 0 (button not pressed) or 1 (button pressed).
-Memory addresses FF24-FF3F are unused by the device.
+Memory addresses FF90-FF93 are either 0 (button not pressed) or 1 (button pressed).
+Memory addresses FF94-FF9F are unused by the device.
 
 
-Mouse - FF40-FF5F
+Mouse - FFA0-FFAF
 
-Memory address FF40 is the mouse data reporting size.
-Memory address FF41 is the command to send.
-Memory address FF42 is the command send enable.
-Memory address FF43 is the mouse command response.
-Memory address FF44 is the last auto-reported data ID.
-Memory addresses FF45-FF5F are used to store the auto-reported data and other longer responses from commands.
+Memory address FFA0 is the mouse data reporting size.
+Memory address FFA1 is the command to send.
+Memory address FFA2 is the command send enable.
+Memory address FFA3 is the mouse command response.
+Memory address FFA4 is the last auto-reported data ID.
+Memory addresses FFA5-FFAF are used to store the auto-reported data and other longer responses from commands.
 
 When auto-reporting is enabled, the bytes will be stored contiguously in memory starting at FF45
 After 'mouse data reporting size' bytes are written, the device will reset back to FF45 and overwrite the previous data.
@@ -48,10 +48,10 @@ After 'mouse data reporting size' bytes are written, the device will reset back 
 See the following website for more details:
 http://www-ug.eecg.utoronto.ca/desl/nios_devices_SoC/datasheets/PS2%20Mouse%20Protocol.htm
 
-VGA - FF60-FF7F
+VGA - FFB0-FFBF
 
-Memory address FF60 is the command to send.
-Memory address FF61 is the command send enable.
+Memory address FFB0 is the command to send.
+Memory address FFB1 is the command send enable.
 The rest of the memory-addresses are used as defined by the following commands.
 
 ---

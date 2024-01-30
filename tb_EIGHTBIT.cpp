@@ -5,7 +5,7 @@
 #include <verilated_vcd_c.h>
 #include "VEIGHTBIT.h"
 
-//#define WAVE
+#define WAVE 1000000
 
 vluint64_t sim_time = 0;
 
@@ -47,7 +47,11 @@ int main(int argc, char** argv)
 #endif
 
 	unsigned int index;
+#ifdef WAVE
+	while (sim_time < WAVE)
+#else
 	while (true)
+#endif
 	{
 		dut->clk = 1;
 		dut->eval();
