@@ -16,6 +16,9 @@ logic [DATA_WIDTH-1:0] current_value;
 
 initial begin
 	current_value = '0;
+`ifdef verilator
+	$readmemh("prog.mem", memory);
+`endif
 end
 
 always_ff @ (negedge clk) begin

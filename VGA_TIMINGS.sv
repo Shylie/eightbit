@@ -47,7 +47,7 @@ end
 always_ff @ (posedge clk_pixel) begin
 	data_enable <= (y >= VA_START && x >= HA_START);
 	frame       <= (y == V_START && x == H_START);
-	line        <= (x == H_START);
+	line        <= (y >= VA_START && x == H_START);
 end
 
 always_ff @ (posedge clk_pixel) begin

@@ -1,6 +1,6 @@
 module LED_DEVICE(
 	input  logic       clk,
-	input  logic [3:0] address,
+	input  logic [4:0] address,
 	input  logic       enable,
 	input  logic       mode,
 	input  logic [7:0] data_in,
@@ -8,7 +8,7 @@ module LED_DEVICE(
 	output logic [9:0] LED
 );
 
-wire logic [7:0] pwm_data[15:0];
+wire logic [7:0] pwm_data[31:0];
 logic [7:0] counter;
 
 DEVICE_INTERFACE device_interface(

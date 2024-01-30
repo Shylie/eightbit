@@ -21,32 +21,38 @@ Instruction Set
 
 Memory-mapped IO Devices
 
-LEDs - FF80-FF8F
+LEDs - FF00-FF1F
 
-Controls the 10 on-board LEDs with brightness values 00-FF in addresses FF80-FF8A.
-Memory addresses FF8B-FF8F are unused by the device.
-
-
-Buttons - FF90-FF9F
-
-Memory addresses FF90-FF93 are either 0 (button not pressed) or 1 (button pressed).
-Memory addresses FF94-FF9F are unused by the device.
+Controls the 10 on-board LEDs with brightness values 00-FF in addresses FF80-FF89.
+Memory addresses FF0A-FF1F are unused by the device.
 
 
-Mouse - FFA0-FFAF
+Buttons - FF20-FF4F
 
-Memory address FFA0 is the mouse data reporting size.
-Memory address FFA1 is the command to send.
-Memory address FFA2 is the command send enable.
-Memory address FFA3 is the mouse command response.
-Memory address FFA4 is the last auto-reported data ID.
-Memory addresses FFA5-FFAF is used to store the auto-reported data and other longer responses from commands.
+Memory addresses FF20-FF23 are either 0 (button not pressed) or 1 (button pressed).
+Memory addresses FF24-FF3F are unused by the device.
 
-When auto-reporting is enabled, the bytes will be stored contiguously in memory starting at FFA5
-After 'mouse data reporting size' bytes are written, the device will reset back to FFA5 and overwrite the previous data.
+
+Mouse - FF40-FF5F
+
+Memory address FF40 is the mouse data reporting size.
+Memory address FF41 is the command to send.
+Memory address FF42 is the command send enable.
+Memory address FF43 is the mouse command response.
+Memory address FF44 is the last auto-reported data ID.
+Memory addresses FF45-FF5F are used to store the auto-reported data and other longer responses from commands.
+
+When auto-reporting is enabled, the bytes will be stored contiguously in memory starting at FF45
+After 'mouse data reporting size' bytes are written, the device will reset back to FF45 and overwrite the previous data.
 
 See the following website for more details:
 http://www-ug.eecg.utoronto.ca/desl/nios_devices_SoC/datasheets/PS2%20Mouse%20Protocol.htm
+
+VGA - FF60-FF7F
+
+Memory address FF60 is the command to send.
+Memory address FF61 is the command send enable.
+The rest of the memory-addresses are used as defined by the following commands.
 
 ---
 

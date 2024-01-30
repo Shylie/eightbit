@@ -1,0 +1,18 @@
+// https://projectf.io/posts/fpga-graphics/
+// https://projectf.io/posts/display-signals/
+
+module VGA_480P #(
+	parameter COORD_WIDTH = 16,
+	parameter H_RES  = 640,
+	parameter H_FP   = 16,
+	parameter H_SYNC = 96,
+	parameter V_RES  = 480,
+	parameter 
+)(
+	input  wire logic       clk_pixel,
+	output logic      [9:0] screen_x,
+	output logic      [9:0] screen_y,
+	output logic            hsync,
+	output logic            vsync,
+	output logic            blank
+);

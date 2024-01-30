@@ -1,0 +1,37 @@
+// https://projectf.io/posts/fpga-graphics/
+
+module VGA_480P(
+	input  wire logic       clk_pixel,
+	output logic      [9:0] screen_x,
+	output logic      [9:0] screen_y,
+	output logic            hsync,
+	output logic            vsync,
+	output logic            blank // high in blanking interval
+);
+
+localparam HA_END = 639;         // end of active pixels
+localparam HS_STA = HA_END + 16; // sync starts after front porch
+localparam HS_END = HS_STA + 96; // sync ends
+localparam LINE   = 799;         // last pixel on line (after back porch)
+
+localparam VA_END = 479;         // end of active pixels
+localparam VS_STA = VA_END + 10; // sync starts after front porch
+localparam VS_END = VS_STA + 2;  // sync ends
+localparam SCREEN = 524;         // last line on screen (after back porch)
+
+always_comb begin
+	hsync = ~(sx >= HS_STA && sx <= HS_END); // invert due to negative polarity
+	vsync = ~(sy >= VS_STA && sy <= VS_END); // invert due to negative polarity
+	blank = ~(sx <= HA_END && sy <= VA_END); // invert due to negative polarity
+end
+
+always_ff @(posedge clk_pixel) begin
+	if (sx == LINE) begin
+		sx <= 0;
+		sy <= (sy == SCREEN) ? 0 : sy + 1;
+	end else begin	
+		sx <= sx + 1;
+	end
+end
+
+endmodule

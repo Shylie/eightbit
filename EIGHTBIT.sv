@@ -29,9 +29,7 @@ typedef enum logic [1:0] {
 module EIGHTBIT(
 	input  logic clk,
 	input  logic [3:0] buttons,
-	/* verilator lint_off UNUSED */
 	input  logic [9:0] switches,
-	/* verilator lint_on UNUSED */
 	output logic [9:0] LED,
 	output logic       VGA_CLK,
 	output logic [7:0] VGA_RED,
@@ -40,7 +38,6 @@ module EIGHTBIT(
 	output logic       VGA_HSYNC,
 	output logic       VGA_VSYNC,
 	output logic       VGA_BLANK,
-	output logic       VGA_SYNC,
 	inout  tri         PS2_CLK,
 	inout  tri         PS2_DAT
 );
@@ -48,9 +45,7 @@ module EIGHTBIT(
 localparam DEVICE_SELECT_WIDTH = 3;
 localparam DEVICE_SELECT_WIDTH_OUT = 1 << DEVICE_SELECT_WIDTH;
 
-/* verilator lint_off UNUSED */
 logic [3:0] inverse_buttons;
-/* verilator lint_on UNUSED */
 
 wire [7:0]  data_bus;
 wire [15:0] address_bus;
@@ -85,13 +80,12 @@ memalu_op_t alu_mem_mode;
 reg_op_t    sr_op;
 
 wire                               mem_mem_enable;
-/* verilator lint_off UNUSED */
 wire [DEVICE_SELECT_WIDTH_OUT-1:0] mem_dev_enable;
-/* verilator lint_on UNUSED */
 
 wire clk_25_2;
 wire clk_100;
 
+`ifndef verilator
 PLL pll(
 	.refclk(clk),
 	.outclk_0(clk_100)
@@ -101,8 +95,9 @@ VGA_PLL vga_pll(
 	.refclk(clk),
 	.outclk_0(clk_25_2)
 );
+`endif
 
-/* verilator lint_off PINMISSING */
+// verilator lint_off PINMISSING
 FSM fsm(
 	.clk(clk_100),
 	.instruction(ir_always_bus_out[7:4]),
@@ -214,7 +209,7 @@ MEMALU #(.HALF_WIDTH(8)) memalu(
 	.out(address_bus)
 );
 
-DEVICE_MAP #(.DATA_WIDTH(8), .ADDRESS_WIDTH(16), .DEVICE_SELECT_WIDTH(DEVICE_SELECT_WIDTH)) devmap(
+DEVICE_MAP #(.DATA_WIDTH(8), .ADDRESS_WIDTH(16), .DEVICE_SELECT_WIDTH(DEVICE_SELECT_WIDTH), .DEVICE_ADDRESS_WIDTH(5)) devmap(
 	.clk(clk_100),
 	.address_in(address_bus),
 	.address_read_enable(address_read_enable),
@@ -224,28 +219,31 @@ DEVICE_MAP #(.DATA_WIDTH(8), .ADDRESS_WIDTH(16), .DEVICE_SELECT_WIDTH(DEVICE_SEL
 	.dev_enable(mem_dev_enable)
 );
 
+`ifndef verilator
 LED_DEVICE led_device(
 	.clk(clk_100),
-	.address(register_address_bus[3:0]),
+	.address(register_address_bus[4:0]),
 	.enable(mem_dev_enable[0]),
 	.mode(data_in),
 	.data_in(data_bus),
 	.data_out(data_bus),
 	.LED(LED)
 );
+`endif
 
 BUTTON_DEVICE button_device(
 	.clk(clk_100),
-	.address(register_address_bus[3:0]),
+	.address(register_address_bus[4:0]),
 	.enable(mem_dev_enable[1]),
 	.mode(data_in),
 	.data_out(data_bus),
 	.button_state(inverse_buttons)
 );
 
+`ifndef verilator
 MOUSE_DEVICE mouse_device(
 	.clk(clk_100),
-	.address(register_address_bus[3:0]),
+	.address(register_address_bus[4:0]),
 	.enable(mem_dev_enable[2]),
 	.mode(data_in),
 	.data_in(data_bus),
@@ -253,10 +251,11 @@ MOUSE_DEVICE mouse_device(
 	.PS2_CLK(PS2_CLK),
 	.PS2_DAT(PS2_DAT)
 );
+`endif
 
 VGA_DEVICE vga_device(
 	.clk(clk_100),
-	.address(register_address_bus[3:0]),
+	.address(register_address_bus[4:0]),
 	.enable(mem_dev_enable[3]),
 	.mode(data_in),
 	.data_in(data_bus),
@@ -267,16 +266,19 @@ VGA_DEVICE vga_device(
 	.blue(VGA_BLUE),
 	.hsync(VGA_HSYNC),
 	.vsync(VGA_VSYNC),
-	.blank(VGA_BLANK),
-	.sync(VGA_SYNC)
+	.data_enable(VGA_BLANK)
 );
-	
-/* verilator lint_on PINMISSING */
+// verilator lint_on PINMISSING
 
 assign sr_op = (overflow_read && zero_read) ? REG_OP_READ : REG_OP_NONE;
 
 assign inverse_buttons = ~buttons;
 
 assign VGA_CLK = clk_25_2;
+
+`ifdef verilator
+assign clk_100 = clk;
+assign clk_25_2 = clk;
+`endif
 
 endmodule

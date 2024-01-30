@@ -1,6 +1,6 @@
 #include "defs.asm"
 
-MST 0xFF80
+MST 0xFF00
 AST 0
 STOR 0
 
