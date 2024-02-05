@@ -51,9 +51,6 @@ logic [3:0] inverse_buttons;
 wire [7:0]  data_bus;
 wire [15:0] address_bus;
 wire [15:0] register_address_bus;
-wire [15:0] pc_always_bus_out;
-wire [15:0] mp_always_bus_out;
-wire [7:0]  acc_always_bus_out;
 wire [7:0]  temp_always_bus_out;
 wire [7:0]  ir_always_bus_out;
 wire        overflow_flag;
@@ -84,6 +81,8 @@ wire        mem_enable;
 reg_op_t    alu_data;
 reg_op_t    alu_mem;
 memalu_op_t alu_mem_mode;
+logic       save_state;
+logic       restore_state;
 
 reg_op_t    sr_op;
 
@@ -105,19 +104,13 @@ VGA_PLL vga_pll(
 );
 `endif
 
-// verilator lint_off PINMISSING
 FSM fsm(
 	.clk(clk_100),
 	.instruction(ir_always_bus_out[7:4]),
 	.overflow(overflow_flag),
 	.zero(zero_flag),
 	.interrupt(interrupt_out),
-	.pc_in(pc_always_bus_out),
-	.mp_in(mp_always_bus_out),
-	.acc_in(acc_always_bus_out),
-	.temp_in(temp_always_bus_out),
-	.overflow_write(overflow_flag_out),
-	.zero_write(zero_flag_out),
+	
 	.ir_low(ir_low),
 	.ir_high(ir_high),
 	.acc_low(acc_low),
@@ -138,29 +131,42 @@ FSM fsm(
 	.alu_mem_mode(alu_mem_mode),
 	.processing_interrupt(processing_interrupt),
 	.address(address_bus),
-	.data(data_bus)
+	.save_state(save_state),
+	.restore_state(restore_state)
 );
 
 SPLIT_REGISTER #(.HALF_WIDTH(4)) ir(
 	.clk(clk_100),
+	.save(save_state),
+	.restore(restore_state),
 	.op_low(ir_low),
 	.op_high(ir_high),
+	.bus_b_low(),
+	.bus_b_high(),
 	.bus_in(data_bus),
+	.bus_b_in(),
 	.bus_out(data_bus),
 	.always_bus_out(ir_always_bus_out)
 );
 
 SPLIT_REGISTER #(.HALF_WIDTH(4)) acc(
 	.clk(clk_100),
+	.save(save_state),
+	.restore(restore_state),
 	.op_low(acc_low),
 	.op_high(acc_high),
+	.bus_b_low(),
+	.bus_b_high(),
 	.bus_in(data_bus),
+	.bus_b_in(),
 	.bus_out(data_bus),
-	.always_bus_out(acc_always_bus_out)
+	.always_bus_out()
 );
 
 REGISTER #(.WIDTH(8)) temp(
 	.clk(clk_100),
+	.save(save_state),
+	.restore(restore_state),
 	.op(temp_register_op),
 	.bus_in(data_bus),
 	.bus_out(data_bus),
@@ -169,21 +175,28 @@ REGISTER #(.WIDTH(8)) temp(
 
 REGISTER #(.WIDTH(8)) swap(
 	.clk(clk_100),
+	.save(),
+	.restore(),
 	.op(swap_register_op),
 	.bus_in(data_bus),
-	.bus_out(data_bus)
+	.bus_out(data_bus),
+	.always_bus_out()
 );
 
 REGISTER #(.WIDTH(16)) pc(
 	.clk(clk_100),
+	.save(save_state),
+	.restore(restore_state),
 	.op(pc_op),
 	.bus_in(address_bus),
 	.bus_out(address_bus),
-	.always_bus_out(pc_always_bus_out)
+	.always_bus_out()
 );
 
 SPLIT_REGISTER #(.HALF_WIDTH(8)) mp(
 	.clk(clk_100),
+	.save(save_state),
+	.restore(restore_state),
 	.op_low(mp16_op),
 	.op_high(mp16_op),
 	.bus_b_low(mp8_low),
@@ -191,13 +204,16 @@ SPLIT_REGISTER #(.HALF_WIDTH(8)) mp(
 	.bus_in(address_bus),
 	.bus_b_in(data_bus),
 	.bus_out(address_bus),
-	.always_bus_out(mp_always_bus_out)
+	.always_bus_out()
 );
 
 REGISTER #(.WIDTH(2)) sr(
 	.clk(clk_100),
+	.save(save_state),
+	.restore(restore_state),
 	.op(sr_op),
 	.bus_in({overflow_flag_out, zero_flag_out}),
+	.bus_out(),
 	.always_bus_out({overflow_flag, zero_flag})
 );
 
@@ -296,7 +312,6 @@ INTERRUPT_BUFFER #(.WIDTH(INTERRUPT_WIDTH)) interrupt_buffer(
 	.processing(processing_interrupt),
 	.interrupt_out(interrupt_out)
 );
-// verilator lint_on PINMISSING
 
 assign sr_op = (overflow_read && zero_read) ? REG_OP_READ : REG_OP_NONE;
 

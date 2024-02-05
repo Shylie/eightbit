@@ -2,6 +2,8 @@ module SPLIT_REGISTER #(
 	parameter HALF_WIDTH = 4
 )(
 	input  logic                       clk,
+	input  logic                       save,
+	input  logic                       restore,
 	input  reg_op_t                    op_low,
 	input  reg_op_t                    op_high,
 	input  logic                       bus_b_low,
@@ -14,6 +16,7 @@ module SPLIT_REGISTER #(
 
 /* verilator lint_off UNOPTFLAT */
 logic [HALF_WIDTH*2-1:0] state;
+logic [HALF_WIDTH*2-1:0] saved_state;
 /* verilator lint_on UNOPTFLAT */
 
 initial begin
@@ -35,6 +38,12 @@ always_ff @ (negedge clk) begin
 	
 	if (op_high == REG_OP_READ) begin
 		state[2*HALF_WIDTH-1:HALF_WIDTH] <= bus_in[2*HALF_WIDTH-1:HALF_WIDTH];
+	end
+	
+	if (save) begin
+		saved_state <= state;
+	end else if (restore) begin
+		state <= saved_state;
 	end
 end
 

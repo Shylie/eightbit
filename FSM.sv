@@ -6,12 +6,6 @@ module FSM #(
 	input  logic                            overflow,
 	input  logic                            zero,
 	input  logic      [INTERRUPT_WIDTH-1:0] interrupt,
-	input  logic                     [15:0] pc_in,
-	input  logic                     [15:0] mp_in,
-	input  logic                      [7:0] acc_in,
-	input  logic                      [7:0] temp_in,
-	output logic                            overflow_write,
-	output logic                            zero_write,
 	output reg_op_t                         ir_low,
 	output reg_op_t                         ir_high,
 	output reg_op_t                         acc_low,
@@ -26,34 +20,23 @@ module FSM #(
 	output reg_op_t                         swap_register,
 	output logic                            address_read,
 	output logic                            data_in,
-	output logic                            data_out,
 	output logic                            mem_enable,
 	output reg_op_t                         alu_data,
 	output reg_op_t                         alu_mem,
 	output memalu_op_t                      alu_mem_mode,
 	output logic                            processing_interrupt,
 	output logic                     [15:0] address,
-	output logic                      [7:0] data
+	output logic                            save_state,
+	output logic                            restore_state
 );
 
 /* verilator lint_off UNOPTFLAT */
 logic [5:0]  current_state;
 logic [5:0]  next_state;
-logic [15:0] last_pc;
-logic [15:0] last_mp;
-logic [7:0]  last_acc;
-logic [7:0]  last_temp;
-logic        last_overflow;
-logic        last_zero;
 /* verilator lint_on UNOPTFLAT */
 
 logic [15:0] address_out;
 logic        output_address;
-
-logic [7:0] data_bus_out;
-logic       output_data;
-
-logic output_sr;
 
 initial begin
 	processing_interrupt = 0;
@@ -107,8 +90,7 @@ always_comb begin
 		14'b????????011011: next_state = 6'b011110; // JMPAB -> CHECK_INTERRUPT
 		14'b????????011100: next_state = 6'b011101; // JMPA -> JMPB
 		14'b????????011101: next_state = 6'b011110; // JMPB -> CHECK_INTERRUPT
-		14'b????????100001: next_state = 6'b100010; // RTIRA -> RTIRB
-		14'b????????100010: next_state = 6'b011110; // RTIRB -> CHECK_INTERRUPT
+		14'b????????100001: next_state = 6'b011110; // RTIRA -> CHECK_INTERRUPT
 		14'b????????011111: next_state = 6'b100000; // HANDLE_INTERRUPT_A -> HANDLE_INTERRUPT_B
 		14'b????????100000: next_state = 6'b000000; // HANDLE_INTERRUPT_B -> A
 		default:            next_state = 6'b011110; // invalid state
@@ -130,14 +112,13 @@ always_ff @ (posedge clk) begin
 	swap_register <= REG_OP_NONE;
 	address_read <= 1'b0;
 	data_in <= 1'b0;
-	data_out <= 1'b0;
 	mem_enable <= 1'b0;
 	alu_data <= REG_OP_NONE;
 	alu_mem <= REG_OP_NONE;
 	alu_mem_mode <= MEMALU_OP_ADD;
 	output_address <= 1'b0;
-	output_data <= 1'b0;
-	output_sr <= 1'b0;
+	save_state <= 1'b0;
+	restore_state <= 1'b0;
 	
 	case (current_state)
 		// A
@@ -266,7 +247,6 @@ always_ff @ (posedge clk) begin
 		
 		// STOD
 		6'h16: begin
-			data_out <= 1'b1;
 			mem_enable <= 1'b1;
 			acc_low <= REG_OP_WRITE;
 			acc_high <= REG_OP_WRITE;
@@ -327,12 +307,7 @@ always_ff @ (posedge clk) begin
 		// HANDLE_INTERRUPT_A
 		6'h1F: begin
 			processing_interrupt <= 1'b1;
-			last_pc <= pc_in;
-			last_mp <= mp_in;
-			last_acc <= acc_in;
-			last_temp <= temp_in;
-			last_zero <= zero;
-			last_overflow <= overflow;
+			save_state <= 1'b1;
 		end
 		
 		// HANDLE_INTERRUPT_B
@@ -342,32 +317,9 @@ always_ff @ (posedge clk) begin
 			output_address <= 1'b1;
 		end
 		
-		// RTIRA - restore pc and acc
+		// RTIRA
 		6'h21: begin
-			address_out <= last_pc;
-			pc <= REG_OP_READ;
-			output_address <= 1'b1;
-			
-			data_bus_out <= last_acc;
-			acc_low <= REG_OP_READ;
-			acc_high <= REG_OP_READ;
-			output_data <= 1'b1;
-			
-			output_sr <= 1'b1;
-			overflow_read <= 1'b1;
-			zero_read <= 1'b1;
-		end
-		
-		// RTIRB - restore mp and temp
-		6'h22: begin
-			address_out <= last_mp;
-			mp16 <= REG_OP_READ;
-			output_address <= 1'b1;
-			
-			data_bus_out <= last_temp;
-			temp_register <= REG_OP_READ;
-			output_data <= 1'b1;
-			
+			restore_state <= 1'b1;
 			processing_interrupt <= 1'b0;
 		end
 		
@@ -376,8 +328,5 @@ always_ff @ (posedge clk) begin
 end
 
 assign address = (output_address) ? address_out : 'z;
-assign data = (output_data) ? data_bus_out : 'z;
-assign overflow_write = (output_sr) ? last_overflow : 'z;
-assign zero_write = (output_sr) ? last_zero : 'z;
 
 endmodule
