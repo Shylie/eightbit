@@ -10,7 +10,7 @@ module MEMALU #(
 );
 
 logic [2*HALF_WIDTH-1:0] a_reg;
-logic [HALF_WIDTH-1:0] b_reg;
+logic [HALF_WIDTH-1:0]   b_reg;
 logic [2*HALF_WIDTH-1:0] result;
 
 always_ff @ (negedge clk) begin
@@ -24,6 +24,7 @@ always_comb begin
 	case (mode)
 		MEMALU_OP_ADD:    result = a_reg + 16'(b_reg);
 		MEMALU_OP_INCR:   result = a_reg + 16'h0001;
+		MEMALU_OP_DECR:   result = a_reg - 16'h0001;
 		MEMALU_OP_OFFSET: result = a_reg + 16'(b_reg) - 'h80;
 		default: result = 'x;
 	endcase

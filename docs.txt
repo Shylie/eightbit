@@ -5,7 +5,7 @@ Instruction Set
 0010 MSTL - Set memory pointer low to accumulator
 0011 MSTH - Set memory pointer high to accumulator
 0100 OPER - Perform ALU operation given by the constant with accumulator as input A and temp register as input B, output to accumulator (LT = overflow; EQ = 0)
-0101 RESERVED
+0101 MPER - Perform MEMALU operation given by the constant
 0110 JUMP - Offset program counter to the contents of the accumulator - 0x7F
 0111 JMPZ - Offset program counter by accumulator - 0x7F if status register signals 0
 1000 JMPO - Offset program counter by accumulator - 0x7F if status register signals overflow
@@ -13,7 +13,7 @@ Instruction Set
 1010 STOR - Store the contents of the accumulator into memory location X, where X is the contents of the memory pointer + constant
 1011 SWAP - Swap the contents of the accumulator and temp register
 1100 JMPA - Copy the memory pointer to the program counter
-1101 RESERVED
+1101 COPY - Copy the accumulator to temp register X, where X is the constant
 1110 RESERVED
 1111 RTIR - Return from interrupt
 

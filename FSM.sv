@@ -3,6 +3,7 @@ module FSM #(
 )(
 	input  logic                            clk,
 	input  logic                      [3:0] instruction,
+	input  logic                      [3:0] constant,
 	input  logic                            overflow,
 	input  logic                            zero,
 	input  logic      [INTERRUPT_WIDTH-1:0] interrupt,
@@ -27,7 +28,8 @@ module FSM #(
 	output logic                            processing_interrupt,
 	output logic                     [15:0] address,
 	output logic                            save_state,
-	output logic                            restore_state
+	output logic                            restore_state,
+	output logic                      [3:0] tempreg_addr
 );
 
 /* verilator lint_off UNOPTFLAT */
@@ -61,6 +63,7 @@ always_comb begin
 		14'b??0010??000100: next_state = 6'b001001; // INCPCB -> MSTLA
 		14'b??0011??000100: next_state = 6'b001011; // INCPCB -> MSTHA
 		14'b??0100??000100: next_state = 6'b001101; // INCPCB -> OPERA
+		14'b??0101??000100: next_state = 6'b100010; // INCPCB -> MPERA
 		14'b??0110??000100: next_state = 6'b011100; // INCPCB -> JMPA
 		14'b??0111?1000100: next_state = 6'b011100; // INCPCB -> JMPA (JMZ)
 		14'b??10001?000100: next_state = 6'b011100; // INCPCB -> JMPA (JMO)
@@ -68,6 +71,7 @@ always_comb begin
 		14'b??1010??000100: next_state = 6'b010011; // INCPCB -> STOA
 		14'b??1011??000100: next_state = 6'b010111; // INCPCB -> SWPA
 		14'b??1100??000100: next_state = 6'b011010; // INCPCB -> JMPAA
+		14'b??1101??000100: next_state = 6'b100100; // INCPCB -> COPYA
 		14'b??1111??000100: next_state = 6'b100001; // INCPCB -> RTIRA
 		14'b????????000101: next_state = 6'b011110; // ASTLA -> CHECK_INTERRUPT
 		14'b????????000111: next_state = 6'b011110; // ASTHA -> CHECK_INTERRUPT
@@ -75,6 +79,8 @@ always_comb begin
 		14'b????????001011: next_state = 6'b011110; // MSTHA -> CHECK_INTERRUPT
 		14'b????????001101: next_state = 6'b001110; // OPERA -> OPERB
 		14'b????????001110: next_state = 6'b011110; // OPERB -> CHECK_INTERRUPT
+		14'b????????100010: next_state = 6'b100011; // MPERA -> MPERB
+		14'b????????100011: next_state = 6'b011110; // MPERB -> CHECK_INTERRUPT
 		14'b????????001111: next_state = 6'b010000; // LODA -> LODB
 		14'b????????010000: next_state = 6'b010001; // LODB -> LODC
 		14'b????????010001: next_state = 6'b010010; // LODC -> LODD
@@ -91,9 +97,10 @@ always_comb begin
 		14'b????????011100: next_state = 6'b011101; // JMPA -> JMPB
 		14'b????????011101: next_state = 6'b011110; // JMPB -> CHECK_INTERRUPT
 		14'b????????100001: next_state = 6'b011110; // RTIRA -> CHECK_INTERRUPT
+		14'b????????100100: next_state = 6'b011110; // COPYA -> CHECK_INTERRUPT
 		14'b????????011111: next_state = 6'b100000; // HANDLE_INTERRUPT_A -> HANDLE_INTERRUPT_B
-		14'b????????100000: next_state = 6'b000000; // HANDLE_INTERRUPT_B -> A
-		default:            next_state = 6'b011110; // invalid state
+		14'b????????100000: next_state = 6'b011110; // HANDLE_INTERRUPT_B -> CHECK_INTERRUPT
+		default:            next_state = 6'b011110; // invalid state -> CHECK_INTERRUPT
 	endcase
 end
 
@@ -119,6 +126,7 @@ always_ff @ (posedge clk) begin
 	output_address <= 1'b0;
 	save_state <= 1'b0;
 	restore_state <= 1'b0;
+	tempreg_addr <= 4'b0;
 	
 	case (current_state)
 		// A
@@ -254,6 +262,7 @@ always_ff @ (posedge clk) begin
 		
 		// SWPA
 		6'h17: begin
+			tempreg_addr <= constant;
 			temp_register <= REG_OP_WRITE;
 			swap_register <= REG_OP_READ;
 		end
@@ -262,6 +271,7 @@ always_ff @ (posedge clk) begin
 		6'h18: begin
 			acc_low <= REG_OP_WRITE;
 			acc_high <= REG_OP_WRITE;
+			tempreg_addr <= constant;
 			temp_register <= REG_OP_READ;
 		end
 		
@@ -323,6 +333,30 @@ always_ff @ (posedge clk) begin
 			processing_interrupt <= 1'b0;
 		end
 		
+		// MPERA
+		6'h22: begin
+			acc_low <= REG_OP_WRITE;
+			acc_high <= REG_OP_WRITE;
+			mp16 <= REG_OP_WRITE;
+			alu_mem_mode <= memalu_op_t'(constant[3:2]);
+			alu_mem <= REG_OP_READ;
+		end
+
+		// MPERB
+		6'h23: begin
+			alu_mem <= REG_OP_WRITE;
+			alu_mem_mode <= memalu_op_t'(constant[3:2]);
+			mp16 <= REG_OP_READ;
+		end
+		
+		// COPYA
+		6'h24: begin
+			acc_low <= REG_OP_WRITE;
+			acc_high <= REG_OP_WRITE;
+			tempreg_addr <= constant;
+			temp_register <= REG_OP_READ;
+		end
+
 		default: begin end
 	endcase
 end

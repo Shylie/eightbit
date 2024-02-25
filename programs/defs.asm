@@ -41,6 +41,8 @@
 	MUL              => 0x49
 	DIV              => 0x4A
 	CMP              => 0x4B
+	MINC {value: u2} => 0x5 @ 0b01 @ value
+	MDEC {value: u2} => 0x5 @ 0b10 @ value
 	JUMP             => 0x60
 	JMPZ             => 0x70
 	JMPO             => 0x80
@@ -68,6 +70,7 @@
 	LOAD {offs:  u4} => 0x9 @ offs
 	STOR {offs:  u4} => 0xA @ offs
 	SWAP             => 0xB0
+	SWAP {addr:  u4} => 0xB @ addr
 	JMPA             => 0xC0
 	JMPA {dest: u16} => asm
 	{
@@ -78,7 +81,7 @@
 		ASTH ({dest} >> 12)`4
 		MSTH
 	} @ 0xC0
-
+	COPY {addr:  u4} => 0xD @ addr
 	RTIR             => 0xF0
 
 	AST {value: u8}  => asm

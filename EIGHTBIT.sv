@@ -1,7 +1,8 @@
 typedef enum logic [1:0] {
 	MEMALU_OP_ADD    = 2'h0,
 	MEMALU_OP_INCR   = 2'h1,
-	MEMALU_OP_OFFSET = 2'h2
+	MEMALU_OP_DECR   = 2'h2,
+	MEMALU_OP_OFFSET = 2'h3
 } memalu_op_t;
 
 typedef enum logic [3:0] {
@@ -83,6 +84,7 @@ reg_op_t    alu_mem;
 memalu_op_t alu_mem_mode;
 logic       save_state;
 logic       restore_state;
+logic [3:0] tempreg_addr;
 
 reg_op_t    sr_op;
 
@@ -107,6 +109,7 @@ VGA_PLL vga_pll(
 FSM fsm(
 	.clk(clk_100),
 	.instruction(ir_always_bus_out[7:4]),
+	.constant(ir_always_bus_out[3:0]),
 	.overflow(overflow_flag),
 	.zero(zero_flag),
 	.interrupt(interrupt_out),
@@ -132,7 +135,8 @@ FSM fsm(
 	.processing_interrupt(processing_interrupt),
 	.address(address_bus),
 	.save_state(save_state),
-	.restore_state(restore_state)
+	.restore_state(restore_state),
+	.tempreg_addr(tempreg_addr)
 );
 
 SPLIT_REGISTER #(.HALF_WIDTH(4)) ir(
@@ -163,8 +167,9 @@ SPLIT_REGISTER #(.HALF_WIDTH(4)) acc(
 	.always_bus_out()
 );
 
-REGISTER #(.WIDTH(8)) temp(
+REGISTER_BLOCK #(.WIDTH(8), .DEPTH(16)) temp(
 	.clk(clk_100),
+	.addr(tempreg_addr),
 	.save(save_state),
 	.restore(restore_state),
 	.op(temp_register_op),
